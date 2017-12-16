@@ -74,10 +74,13 @@ cd build
 cmake $CMAKE_OPTIONS ../src
 make -j
 
-cp -v ./fsme/src/libimachine-dyn.so $dist_dir/lib/libimachine.so
-cp -v ./fsme/src/libimachine-static.a $dist_dir/lib/libimachine.a
-cp -v ../src/fsme/header/fsme.h $dist_dir/include
-cp -v ./example/imachine_example $dist_dir/bin
+mkdir -p $dist_dir/include/org/jinsha/imachine
+cp -f ./lib/libimachine.so $dist_dir/lib/libimachine.so
+cp -f ../src/org/jinsha/imachine/State.h $dist_dir/include/org/jinsha/imachine/State.h
+cp -f ../src/org/jinsha/imachine/Transition.h $dist_dir/include/org/jinsha/imachine/Transition.h
+cp -f ../src/org/jinsha/imachine/StateMachine.h $dist_dir/include/org/jinsha/imachine/StateMachine.h
+cp -f ../src/org/jinsha/imachine/StateMachineEngine.h $dist_dir/include/org/jinsha/imachine/StateMachineEngine.h
+cp -f ./bin/* $dist_dir/bin
 
 cd ..
 

@@ -219,8 +219,7 @@ int main(int argc, char** argv)
 		printf("101-Self_Test\n");
 		printf("\n[ATM State Machine] Sent Event:\n");
 
-		scanf("%d", &input);
-		getchar();
+		int dummy = scanf("%d", &input);
 
 		switch (input) {
 			case 1:

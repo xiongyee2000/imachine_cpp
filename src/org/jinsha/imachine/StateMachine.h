@@ -1,57 +1,108 @@
 #ifndef STATEMACHINE_H_HEADER_INCLUDED_BA465AF4
 #define STATEMACHINE_H_HEADER_INCLUDED_BA465AF4
 
-#include "Event.h"
+#include <string>
+#include <map>
 #include "State.h"
 #include "Transition.h"
 
+namespace org {namespace jinsha{namespace imachine{
+class State;
+class Transition;
+class Trigger;
+class StateMachineEngine;
 
-//##ModelId=45B9D115037F
 class StateMachine {
-  public:
-    //##ModelId=45B9D2740022
-    StateMachine(int id,
-		const char* name, 
-		State** states, 
-		int stateNum, 
-		Transition** transitions, 
-		int transitionNum, 
-		Event** events, 
-		int eventNum, 
-		int initState);
+friend class StateMachineEngine;
 
-  private:
-    //##ModelId=45B9D12A0126
-    State** states;
+public:
+	static bool validate(const StateMachine& machine);
 
-    //##ModelId=45B9D14F0379
-    Transition** transitions;
+    StateMachine(int id, const std::string& name = "");
+    virtual ~StateMachine();
 
-    //##ModelId=45B9D15700E6
-    int stateNum;
+    int getId() const {return id;};
+    State* getState(int stateId) const ;
+    bool addState(int id, const std::string& name = "");
 
-    //##ModelId=45B9D15E0349
-    int transitionNum;
+    /**
+     * Note:
+     * Automatic transition.
+     * addTransition() must be called after all addState().
+     */
+    bool addTransition(int id, int fromStateId, int toStateId, const std::string& name = "");
 
-    //##ModelId=45B9D167014D
-    Event** events;
+    /**
+     * Note:
+     *
+     * addTransition() must be called after the fromState and toState are added by calling addState().
+     */
+    bool addTransition(int id, int fromStateId, int toStateId, int eventId, const std::string& name = "");
 
-    //##ModelId=45B9D16F0290
-    int eventNum;
+    /**
+     * Note:
+     * setInitState() must be called after the state is added by calling addState().
+     */
+    bool setInitState(int stateId);
 
+    /**
+     * Note:
+     * This method shall be used when the state machine
+     * is not loaded into any state machine engine.
+     * Return false when this is the final state
+     */
+    bool setSubMachine(int stateId, StateMachine* machine);
 
-    //##ModelId=45B9D1770313
-    int initState;
+    /**
+     * Note:
+     * This method shall be used when the state machine
+     * is not loaded into any state machine engine.
+     * Return false when this is the final state
+     * autoStart: Whether automatically start the sub-machine when this state is entered.
+     */
+    bool setSubMachine(int stateId, StateMachine* machine, bool autoStart);
 
-    //##ModelId=45B9D40F0205
+    /**
+     * Note:
+     * This method shall be used when the state machine
+     * is not loaded into any state machine engine.
+     * Return false when this is the final state
+     * exitTransitionId: The transition (in this state machine) to go to
+     * when the sub-machine is shut down.
+     */
+    bool setSubMachine(int stateId, StateMachine* machine, int exitTransitionId);
+
+    /**
+     * Note:
+     * This method shall be used when the state machine
+     * is not loaded into any state machine engine.
+     * Return false when this is the final state
+     * autoStart: Whether automatically start the sub-machine when this state is entered.
+     * exitTransitionId: The transition (in this state machine) to go to
+     * when the sub-machine is shut down.
+     */
+    bool setSubMachine(int stateId, StateMachine* machine, bool autoStart, int exitTransitionId);
+
+    void removeAllStates();
+    void removeAllTransitions();
+
+private:
+    static const int AUTO_TRANSITION_EVENT;
+    StateMachine();
+    StateMachine(const StateMachine& stateMachine);
+    StateMachine& operator = (const StateMachine& stateMachine);
+
+    bool doSetSubMachine(int stateId, StateMachine* machine, bool* autoStart, int* exitTransitionId);
+    bool doAddTransition(int id, int fromStateId, int toStateId, int* eventIdPtr, const std::string& name = "");
+
     int id;
-    //##ModelId=4618F8F201A5
-    const char* name;
-
-    friend class StateMachineEngine;
-
+    std::string name;
+    State* initState;
+    std::map<int, State*> states;
+    std::map<int, Transition*> transitions;
+    StateMachineEngine* engine;
 };
 
-
+}}}//end of namespace
 
 #endif /* STATEMACHINE_H_HEADER_INCLUDED_BA465AF4 */

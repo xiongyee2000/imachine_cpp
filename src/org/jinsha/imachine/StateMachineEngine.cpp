@@ -1,194 +1,272 @@
-#include <assert.h>
-
-#include "boost/bind.hpp"
+#include "State.h"
+#include "Transition.h"
+#include "StateMachine.h"
 #include "StateMachineEngine.h"
 
 //#define SME_DEBUG_TO_CONSOLE
 //#define SME_DEBUG_TO_FILE
 
- const char* StateMachineEngine::LOG_FILE_NAME = "imachine.log";
+namespace org {namespace jinsha{namespace imachine{
 
+const int StateMachineEngine::SUB_ENGINE_ID = -1;
 
-
-//##ModelId=45B827B20177
-StateMachineEngine::StateMachineEngine(const StateMachine& stateMachine)
+StateMachineEngine::StateMachineEngine(int id) :
+		StateMachineEngine(id, nullptr)
 {
-	int i = 0;
-	State* tmpState = nullptr;
-	Transition* tmpTransition = nullptr;
-	Event* tmpEvent = nullptr;
+}
 
-	assert(validate(stateMachine));
+StateMachineEngine::StateMachineEngine(int id, StateMachineEngine* parent) :
+		id(id),
+		machine(nullptr),
+		activeState(nullptr),
+		parent(parent),
+//		transitionStackDepth(0),
+		transitionInProcess(false),
+		logFileName(""),
+		logFile(nullptr)
+{
+#ifdef SME_DEBUG_TO_FILE
+	if (parent != nullptr) {
+		logFileName = parent->logFileName;
+		logFile = parent->logFile;
+	} else {
+		logFileName = "imachine-";
+		logFileName += id;
+		logFileName += ".log";
+		logFile = fopen(logFileName.c_str(), "w");
+	}
+#endif
+}
 
-	parent = nullptr;
-	transitionInProcess = false;
-	transitionStackDepth = 0;
-	logFile = fopen(LOG_FILE_NAME, "a");
+int StateMachineEngine::loadStateMachine(StateMachine& stateMachine)
+{
+	if (machine != nullptr) {
+		return ERR_MACHINE_LOADED;
+	}
 
+	if (stateMachine.engine != nullptr) {
+		return ERR_MACHINE_LOADED;
+	}
 
-	sm_id = stateMachine.id;
-	sm_name = stateMachine.name;
+	if (!StateMachine::validate(stateMachine)) {
+		return ERR_INVALID_STATE_MACHINE;
+	}
 
-	//intialize the state table
-	for (i = 0; i < stateMachine.stateNum; i++) {
-		tmpState = stateMachine.states[i];
-		stateTable[tmpState->id] = tmpState;
-		if (tmpState->subEngine != nullptr) {
-			tmpState->subEngine->parent = this;
+	this->machine = &stateMachine;
+	stateMachine.engine = this;
+
+	//load sub machines
+	for (auto item : this->machine->states) {
+		if (item.second->subMachine != nullptr &&
+			item.second->subMachine->engine == nullptr) {
+			StateMachineEngine* subEngine = new StateMachineEngine(SUB_ENGINE_ID, this);
+			subEngine->loadStateMachine(*item.second->subMachine);
 		}
 	}
-	currentState = stateTable[State::TERMINAL_STATE_ID];
 
-	//intialize the transition table
-	for (i = 0; i < stateMachine.transitionNum; i++) {
-		tmpTransition = stateMachine.transitions[i];
-		transitionTable[tmpTransition->id] = tmpTransition;
+	return ERR_SUCCESS;
+}
+
+int StateMachineEngine::unloadStateMachine()
+{
+	if (machine == nullptr) {
+		return ERR_MACHINE_NOT_LOADED;
 	}
 
-	//intialize the event table
-	for (i = 0; i < stateMachine.eventNum; i++) {
-		tmpEvent = stateMachine.events[i];
-		eventTable[tmpEvent->id] = tmpEvent;
+	if (isStarted()) {
+		return ERR_ENGINE_ALIVE;
 	}
 
-	initState = stateTable[stateMachine.initState];
+	for (auto item : machine->states) {
+		item.second->entryAction = nullptr;
+		item.second->exitAction = nullptr;
+		if (item.second->subMachine != nullptr &&
+			item.second->subMachine->engine != nullptr) {
+			item.second->subMachine->engine->unloadStateMachine();
+			delete item.second->subMachine->engine;
+		}
+	}
+
+	for (auto item : machine->transitions) {
+		item.second->action = nullptr;
+	}
+
+	machine->engine = nullptr;
+	machine = nullptr;
+
+	return ERR_SUCCESS;
+}
+
+bool StateMachineEngine::setSubMachine(int stateId, StateMachine* machine)
+{
+	if (stateId == State::FINAL_STATE_ID) return false; //FINAL_STATE not allowed to have sub state machine
+	if (this->machine == nullptr) return false;
+
+	auto iter = this->machine->states.find(stateId);
+	if (iter == this->machine->states.end()) {
+		return false;
+	}
+
+	State* state = iter->second;
+	if (state->subMachine == nullptr) {
+		state->subMachine = machine;
+	} else {
+		StateMachineEngine* subEngine = state->subMachine->engine;
+		if (subEngine == nullptr) {
+			state->subMachine = machine;
+		} else {
+			if (subEngine->isStarted()) { //Not allowed when sub-engine is started
+				return false;
+			}
+			subEngine->unloadStateMachine(); //unload sub machine first
+			delete subEngine; //the sub engine is managed by its parent engine, so delete it first.
+			state->subMachine = machine;
+			subEngine = new StateMachineEngine(SUB_ENGINE_ID, this);
+			subEngine->loadStateMachine(*machine);
+		}
+	}
+
+	return true;
 }
 
 
-//##ModelId=45B87EB90080
+bool StateMachineEngine::setStateEntryAction(int stateId, const StateAction* action)
+{
+	return doSetStateAction(stateId, action, true);
+}
+
+bool StateMachineEngine::setStateExitAction(int stateId, const StateAction* action)
+{
+	return doSetStateAction(stateId, action, false);
+}
+
+bool StateMachineEngine::doSetStateAction(int stateId, const StateAction* action, bool entry)
+{
+	if (stateId <= State::INVALID_STATE_ID) return false; //invalid state not allowed to have entry action
+	if (this->machine == nullptr) return false;
+
+	auto iter = this->machine->states.find(stateId);
+	if (iter != this->machine->states.end()) {
+		if (entry) {
+			iter->second->entryAction = action;
+		} else {
+			iter->second->exitAction = action;
+		}
+		return true;
+	} else {
+		return false;
+	}
+}
+
+bool StateMachineEngine::setTransitionAction(int transitionId, const TransitionAction* action)
+{
+	if (transitionId <= Transition::INVALID_ID) return false; //invalid transition not allowed to have entry action
+	if (this->machine == nullptr) return false;
+
+	auto iter = this->machine->transitions.find(transitionId);
+	if (iter != this->machine->transitions.end()) {
+		iter->second->action = action;
+		return true;
+	} else {
+		return false;
+	}
+}
+
 StateMachineEngine::~StateMachineEngine()
 {
-	std::map<int,State*>::iterator theStateIterator = stateTable.end();
-	std::map<int,Transition*>::iterator theTransitionIterator = transitionTable.end();
-	std::map<int,Event*>::iterator theEventIterator = eventTable.end();
-	std::map<connection_t*, connection_t*>::iterator connectionIterator = connections.end();
-
-	//release the connection list
-	for( connectionIterator = connections.begin(); connectionIterator != connections.end(); connectionIterator++ ) {
-		connectionIterator->second->disconnect();
-		delete connectionIterator->second;
+	if (isStarted()) {
+		_shutdown();
 	}
-	connections.clear();
-
-	//release the event objects
-	for( theEventIterator = eventTable.begin(); theEventIterator != eventTable.end(); theEventIterator++ ) {
-		delete theEventIterator->second;
+	if (machine != nullptr) {
+		unloadStateMachine();
 	}
-	//release the event table
-	eventTable.clear();
-
-	//release the transition objects
-	for( theTransitionIterator = transitionTable.begin(); theTransitionIterator != transitionTable.end(); theTransitionIterator++ ) {
-		delete theTransitionIterator->second;
-	}
-	//release the transition table
-	transitionTable.clear();
-
-	//release the state objects
-	for( theStateIterator = stateTable.begin(); theStateIterator != stateTable.end(); theStateIterator++ ) {
-		delete theStateIterator->second;
-	}
-	//release the state table
-	stateTable.clear();
-
-
-	if (logFile != nullptr) {
+	if (parent != nullptr && logFile != nullptr) {
 		fclose(logFile);
 	}
 }
 
-
-//##ModelId=45B70E9200C4
 void StateMachineEngine::_start() 
 {
-	std::list<Listener*>::iterator theIterator;
+	if (machine->initState == nullptr) {
+		debug("[" + machine->name + "] ");
+		debug("Starting engine failed for initState is null.\n");
+		return;
+	}
+	if (machine->initState->id == State::FINAL_STATE_ID) {
+		debug("[" + machine->name + "] ");
+		debug("Starting engine failed for initState is FINAL.\n");
+		return;
+	}
 
-	if (get_isStarted()) {
-		debug("[" + sm_name + "] ");
-		debug("Exception: engine already started!\n");
-		return; //already started
-	} 
-
-	debug("[" + sm_name + "] ");
+	debug("[" + machine->name + "] ");
 	debug("Starting engine...\n");
-	transitionInProcess = true;
-
-	debug("[" + sm_name + "] ");
-	debug("Entering init state...\n");
-	enterState(initState);
-	debug("[" + sm_name + "] ");
+	_enterState(machine->initState);
+	debug("[" + machine->name + "] ");
 	debug("Engine started.\n");
 }
 
-
-//##ModelId=45B7116501BE
-void StateMachineEngine::_terminate()
+void StateMachineEngine::_shutdown()
 {
-	std::list<Listener*>::iterator theIterator;
 	std::map<int, StateMachineEngine*>::iterator iter;
 
-	debug("[" + sm_name + "] ");
+	debug("[" + machine->name + "] ");
 	debug("Terminating engine...\n");
 
-	if (!get_isStarted()) {
-		debug("[" + sm_name + "] ");
+	if (!isStarted()) {
+		debug("[" + machine->name + "] ");
 		debug("Exception: engine not started!\n");
-		return; //
+		return;
 	}
 
-
-	//If the current state is a sub machine, terminate the corresponding sub engine
-	if (currentState->subEngine != nullptr && currentState->subEngine->get_isStarted()) {
-		debug("[" + sm_name + "] ");
+	//If the active state is a sub machine, terminate the corresponding sub engine
+	if (activeState->subMachine != nullptr &&
+			activeState->subMachine->engine != nullptr &&
+			activeState->subMachine->engine->isStarted()) {
+		debug("[" + machine->name + "] ");
 		debug("Sub engine is alive, terminate it...\n");
-		currentState->subEngine->_terminate();
+		activeState->subMachine->engine->_shutdown();
 	}
 
-	currentState = stateTable[State::TERMINAL_STATE_ID];
+	activeState = nullptr;
 
-	debug("[" + sm_name + "] ");
+	debug("[" + machine->name + "] ");
 	debug("Engine terminated.\n");
 }
 
-//##ModelId=45B711BA02F8
-StateMachineEngine::error_code_t StateMachineEngine::processTransition(int transitionId) 
+StateMachineEngine::error_code_t StateMachineEngine::processTransition(Transition& transition)
 {
+#if 0
 	///////////////////////////////////////////////////////////////////////////////////////
 	// The entry function may post an event to the engine, which will result in 
-	// a recursive invocation to this method. To avoid the 'stack' like behavioral,
+	// a recursive invocation to this method. To avoid the 'stack' like behavior,
 	// we queue the transitions that are incurred by the transition.
 	///////////////////////////////////////////////////////////////////////////////////////
 	transitionStackDepth = 0;
-	int frontTransitionId = 0;
+#endif
+
 	bool success = true;
-	error_code_t rtv = SME_SUCCESS;
+	error_code_t rtv = ERR_SUCCESS;
 
-	if (!get_isStarted()) {
-		debug("[" + sm_name + "] ");
+	if (!isStarted()) {
+		debug("[" + machine->name + "] ");
 		debug("Exception: engine is not started yet, unable to process transition!\n");
-		return ENGINE_TERMINATED_ERROR;
+		return ERR_ENGINE_TERMINATED;
 	}
 
-	if (transitionInProcess) {
-		debug("[" + sm_name + "] ");
-		debug("Exception: Previous transition in process, unable to process another one!\n");
-		return TRANSITION_IN_PROCESS_ERROR;
-	}
-
+#if 0
 	transitionStackDepth++;
-	transitionQueue.push(transitionId);
+	transitionQueue.push(&transition);
 
 	if (transitionStackDepth > 1) {
 		transitionStackDepth--;
-		return SME_SUCCESS;
+		return ERR_SUCCESS;
 	}
 
-
 	while(!transitionQueue.empty()) {
-		frontTransitionId = transitionQueue.front();
+		Transition* frontTransition = transitionQueue.front();
 		transitionQueue.pop();
-		rtv = doTransition(frontTransitionId);
-		if (rtv != SME_SUCCESS) {
+		rtv = _doTransition(*frontTransition);
+		if (rtv != ERR_SUCCESS) {
 			success = false;
 		}
 	}
@@ -196,286 +274,270 @@ StateMachineEngine::error_code_t StateMachineEngine::processTransition(int trans
 	transitionStackDepth--;
 
 	if (success) {
-		return SME_SUCCESS;
+		return ERR_SUCCESS;
 	} else {
-		return RECURSIVE_TRANSITION_ERROR;
+		return ERR_RECURSIVE_TRANSITION;
 	}
+#endif
+
+	return _doTransition(transition);
 }
 
-
-//##ModelId=45D5438C01A4
-StateMachineEngine::error_code_t StateMachineEngine::doTransition(int transitionId)
+StateMachineEngine::error_code_t StateMachineEngine::_doTransition(Transition& transition)
 {
-	std::map<int, Transition*>::iterator iter = transitionTable.find(transitionId);
+		State* fromState = transition.fromState;
+		State* toState = transition.toState;
 
-	if (iter != transitionTable.end()) {	//if the transition exists
-		int fromStateId = iter->second->fromStateId;
-		int toStateId = iter->second->toStateId;
-
-		debug("[" + sm_name + "] ");
+		debug("[" + machine->name + "] ");
 		debug("Processing transition, id=");
-		debug(transitionId);
-		debug(" name=" + iter->second->name);
+		debug(transition.id);
+		debug(" name=" + transition.name);
 		debug("...\n");
 
 		//if the transition is valid
-		if (fromStateId == currentState->id) {
-			std::list<Listener*>::iterator theIterator;
-
+		if (fromState == activeState) {
 			//If fromStateId does not equal to toStateId, exit the from-state
-			if (fromStateId != toStateId) {
-				//exit current state
-				exitState(currentState);
+			if (fromState != toState) {
+				//exit active state
+				_exitState(activeState);
 			}
 
 			//do transition actions
-			iter->second->signal->operator()();
+			if (transition.action != nullptr) {
+
+				(*static_cast<const TransitionAction*>(transition.action))(this, &transition);
+			}
 
 			//If fromStateId does not equal to toStateId, enter the to-state
-			if (fromStateId != toStateId) {
+			if (fromState != toState) {
 				//enter next state
-				enterState(stateTable[toStateId]);
+				_enterState(toState);
 			}
 		} else {
-			debug("[" + sm_name + "] ");
-			debug("Exception: invalid transition for current state!\n");
-			return IMPROPER_TRANSITION_ERROR; //invalid transition for current state
+			debug("[" + machine->name + "] ");
+			debug("Exception: invalid transition for active state!\n");
+			return ERR_IMPROPER_TRANSITION; //invalid transition for active state
 		}
-	} else {
-		debug("[" + sm_name + "] ");
-		debug("Error: invalid transition!\n");
-		return INVALID_TRANSITION_ERROR; //transition does not exist
-	}
 
-	return SME_SUCCESS;
+	return ERR_SUCCESS;
 }
 
-
-
-//##ModelId=45B84C8E0133
- const State* StateMachineEngine::get_currentState() const
+void StateMachineEngine::_enterState(State* state)
 {
-    return currentState;
-}
-
-
-//##ModelId=45B865960389
-void StateMachineEngine::enterState(const State* state)
-{
-	std::list<Listener*>::iterator theIterator;
-
-	debug("[" + sm_name + "] ");
+	debug("[" + machine->name + "] ");
 	debug("Entering state: id=");
 	debug(state->id);
 	debug(" name=" + state->name);
 	debug("...\n");
 
-	//set current state before actions so that the entry actions can post another event
-	//immediately
-	currentState = state;
-	transitionInProcess = false;
+	activeState = state;
 
-	//If it is a sub state machine, start the sub state machine engine
-	if (state->subEngine != nullptr) {
-		debug("[" + sm_name + "] ");
-		debug("Starting sub state machine...\n");
-		if (currentState == state) {
-			//We must check if the current state is the one we want to enter, 
-			//because the entry function may trigger a transition that cause
-			//the current state being changed.
-			stateTable[state->id]->subEngine->_start();
+	if (state->id == State::FINAL_STATE_ID) {
+		//If it is the FINAL state, terminate the engine
+		debug("[" + machine->name + "] ");
+		debug("Entered, active state:" + state->name + "\n");
+
+		_shutdown();
+
+		//If this engine has a parent, and the active state of the parent has an exit-transition,
+		//then do the exit transtion on parent engine.
+		if (parent != nullptr &&
+			parent->activeState != nullptr &&
+			parent->activeState->subMachine != nullptr &&
+			parent->activeState->subMachine->engine == this &&
+			parent->activeState->exitTransition != nullptr) {
+			parent->_doTransition(*parent->activeState->exitTransition);
+		}
+	} else {
+		if (state->entryAction != nullptr) {
+			(*static_cast<const StateAction*>(state->entryAction))(this, state);
+		}
+		debug("[" + machine->name + "] ");
+		debug("Entered, active state:" + state->name + "\n");
+
+		std::map<int, Transition*>::iterator autoTransition = state->triggers.find(StateMachine::AUTO_TRANSITION_EVENT);
+		if (autoTransition != state->triggers.end()) {
+			//If there is an auto-transition, exit current state, and do transition.
+			_exitState(state);
+			_doTransition(*autoTransition->second);
+		} else {
+			//If it is a sub state machine, and it is set to auto-start sub-machine,
+			//then start the sub state machine engine
+			if (state->subMachine != nullptr && state->autoStartSubMachine == true) {
+				StateMachineEngine* subEngine = state->subMachine->engine;
+				if (subEngine == nullptr) {
+					subEngine = new StateMachineEngine(SUB_ENGINE_ID, this);
+					subEngine->loadStateMachine(*state->subMachine);
+				}
+				if (!subEngine->isStarted()) {
+					debug("[" + machine->name + "] ");
+					debug("Starting sub state machine...\n");
+					subEngine->_start();
+				}
+			}
 		}
 	}
-
-	debug("[" + sm_name + "] ");
-	debug("Entered, current state:" + state->name + "\n");
-
-	////If it is the TERMINAL state, terminate the engine
-	//if (state->id == SM_State::TERMINAL_STATE_ID) {
-	//	_terminate();
-	//	return;
-	//}
-
 }
 
-
-//##ModelId=45B865A300E9
-void StateMachineEngine::exitState(const State* state)
+void StateMachineEngine::_exitState(State* state)
 {
-	std::list<Listener*>::iterator theIterator;
-
-	debug("[" + sm_name + "] ");
+	debug("[" + machine->name + "] ");
 	debug("Exiting state: id=");
 	debug(state->id);
 	debug(" name=" + state->name);
 	debug("...\n");
 
-	transitionInProcess = true;
-
 	//If it is a sub state machine and the sub engine is running, terminate the sub engine
-	if (state->subEngine != nullptr && state->subEngine->get_isStarted()) {
-		debug("[" + sm_name + "] ");
+	if (state->subMachine != nullptr &&
+			state->subMachine->engine != nullptr &&
+			state->subMachine->engine->isStarted()) {
+		debug("[" + machine->name + "] ");
 		debug("The sub engine is alive, terminate it...\n");
-		stateTable[state->id]->subEngine->_terminate();
+		state->subMachine->engine->_shutdown();
 	}
 
-	debug("[" + sm_name + "] ");
-	debug("Exited from current state:" + state->name + "\n");
+	if (state->exitAction != nullptr) {
+		(*static_cast<const StateAction*>(state->exitAction))(this, state);
+	}
+
+	debug("[" + machine->name + "] ");
+	debug("Exited from active state:" + state->name + "\n");
 }
 
-
-//##ModelId=45B889210187
-StateMachineEngine::error_code_t StateMachineEngine::event(int eventId)
+StateMachineEngine::error_code_t StateMachineEngine::postEvent(int eventId)
 {
-	if (get_isStarted()) {
+	if (isStarted()) {
 		return defaultEvent(eventId);
 	} else {
-		debug("[" + sm_name + "] ");
+		debug("[" + machine->name + "] ");
 		debug("Exception: engine is not started yet, unable to process event!\n");
-		return ENGINE_TERMINATED_ERROR; //not started, unable to process event
+		return ERR_ENGINE_TERMINATED; //not started, unable to process event
 	}
 }
 
-
-//##ModelId=45B9ED4601B3
-int StateMachineEngine::get_sm_id() const
+StateMachineEngine* StateMachineEngine::getSubEngine(int stateId) const
 {
-    return sm_id;
-}
+	if (stateId <= State::INVALID_STATE_ID) return nullptr;
+	if (machine == nullptr) return nullptr;
 
-
-//##ModelId=45B9ED52023C
-std::string const& StateMachineEngine::get_sm_name() const
-{
-    return sm_name;
-}
-
-
-
-//##ModelId=45BA2CC0030C
-StateMachineEngine* StateMachineEngine::get_subEngine(int stateId)
-{
-	State* state = stateTable[stateId];
-
-	if (state && state->subEngine) {
-		return state->subEngine;
-	} else {
-		return nullptr;
+	auto iter = machine->states.find(stateId);
+	if (iter != machine->states.end()) {
+		if (iter->second->getSubMachine() != nullptr) {
+			return iter->second->getSubMachine()->engine;
+		}
 	}
+	return nullptr;
 }
 
-
-
-//##ModelId=45BB438C006D
-bool StateMachineEngine::get_isStarted() const
+bool StateMachineEngine::isStarted()
 {
-	return (currentState != nullptr && currentState->id != State::TERMINAL_STATE_ID);
+	return (activeState != nullptr && activeState->id != State::FINAL_STATE_ID);
 }
 
-
-
-//##ModelId=45BB48040393
 StateMachineEngine::error_code_t StateMachineEngine::defaultEvent(int eventId)
 {
-	std::map<int, Event*>::iterator iter;
-	Event* event = nullptr;
-
-	debug("[" + sm_name + "] ");
+	error_code_t errorCode = ERR_UNKOWN;
+	debug("[" + machine->name + "] ");
 	debug("Default event handler received event, id=");
 	debug(eventId);
 	debug("\n");
 
-	iter = eventTable.find(eventId);
-	if (iter != eventTable.end()) {
-		int transitionId = Transition::INVALID_ID;
-		event = iter->second;
-		transitionId = event->get_transitionId(currentState->id);
-
-		//process default transition
-		if ( transitionId != Transition::INVALID_ID) {
-			return processTransition(transitionId);
-		} else {
-			debug("[" + sm_name + "] ");
-			debug("Exception: unacceptable event for current state, id=");
-			debug(currentState->id);
-			debug("!\n");
-			return UNMAPPED_EVENT_ERROR; //event not mapped to a transition
-		}
-	} else {
-		debug("[" + sm_name + "] ");
-		debug("Exception: invalid event!\n");
-		return INVALID_EVENT_ERROR; //event not found
+	if 	(transitionInProcess == true) {
+		debug("[" + machine->name + "] ");
+		debug("Exception: Previous transition in process, unable to process another one!\n");
+		return ERR_TRANSITION_IN_PROCESS;
 	}
 
-	return SME_SUCCESS;
+	if (activeState != nullptr && activeState->id != State::FINAL_STATE_ID) {
+		Transition* transition = nullptr;
+		std::map<int, Transition*>::iterator iter = activeState->triggers.find(eventId);
+		if (iter != activeState->triggers.end()) {
+			transition = iter->second;
+			//process default transition
+			transitionInProcess = true;
+			errorCode = processTransition(*transition);
+			transitionInProcess = false;
+		} else {
+			debug("[" + machine->name + "] ");
+			debug("Exception: unacceptable event for active state, id=");
+			debug(activeState->id);
+			debug("!\n");
+			return ERR_UNACCEPTABLE_EVENT; //event not acceptable by the active state
+		}
+	} else {
+		debug("[" + machine->name + "] ");
+		debug("Exception: no active state");
+		debug("!\n");
+		return ERR_UNACCEPTABLE_EVENT; //event not acceptable by the active state
+	}
+
+	return errorCode;
 }
 
-
-//##ModelId=45BB522F0042
 StateMachineEngine::error_code_t StateMachineEngine::start()
 {
-	if (get_isStarted()) {
-		debug("[" + sm_name + "] ");
+	if (isStarted()) {
+		debug("[" + machine->name + "] ");
 		debug("Exception: engine already started!\n");
-		return ENGINE_ALIVE_ERROR; //already started
+		return ERR_ENGINE_ALIVE; //already started
 	} else {
+		if 	(transitionInProcess == true) {
+			debug("[" + machine->name + "] ");
+			debug("Exception: Previous transition in process, unable to process another one!\n");
+			return ERR_TRANSITION_IN_PROCESS;
+		}
+
 		if (parent == nullptr) {
 			//root engine, user can start it
+			transitionInProcess = true;
 			_start();
+			transitionInProcess = false;
 		} else { //It is a sub engine
-			int parentCurrStateId = parent->get_currentState()->id;
-			if (parent->get_subEngine(parentCurrStateId) == this) {
-				//parent engine is in the state this engine belongs to, user can start it
+			if (parent->isStarted() &&
+				parent->activeState != nullptr &&
+				parent->activeState->subMachine == nullptr &&
+				parent->activeState->subMachine->engine == this) {
+				transitionInProcess = true;
 				_start();
+				transitionInProcess = false;
 			} else {
-				debug("[" + sm_name + "] ");
-				debug("Exception: Parent engine in improper state, start forbidden!\n");
-				return IMPROPER_START_ERROR; //user can not start it directly
+				debug("[" + machine->name + "] ");
+				debug("Exception:  Start is forbidden for the parent engine in improper state!\n");
+				return ERR_FORBIDDEN;
 			}
 		}
 	}
 
-	return SME_SUCCESS;
+	return ERR_SUCCESS;
 }
 
-//##ModelId=45BB5246030D
-StateMachineEngine::error_code_t StateMachineEngine::terminate()
+StateMachineEngine::error_code_t StateMachineEngine::shutdown()
 {
-	if (get_isStarted()) {
+	if (isStarted()) {
 		if (parent == nullptr) {
 			//root engine, user can terminate it
-			_terminate();
+			_shutdown();
 		} else { //It is a sub engine
-			int parentCurrStateId = parent->get_currentState()->id;
-			if (parent->get_subEngine(parentCurrStateId) == this) {
-				//parent engine is in the state this engine belongs to, user can terminate it
-				_terminate();
+			if (parent->isStarted() &&
+				parent->activeState != nullptr &&
+				parent->activeState->subMachine == nullptr &&
+				parent->activeState->subMachine->engine == this) {
+				_shutdown();
 			} else {
-				debug("[" + sm_name + "] ");
-				debug("Exception:  Parent engine in improper state, termination forbidden!\n");
-				return IMPROPER_TERMINATE_ERROR; //user can not terminate it directly
+				debug("[" + machine->name + "] ");
+				debug("Exception: Terminate is forbidden for the parent engine in improper state!\n");
+				return ERR_FORBIDDEN;
 			}
 		}
 	} else {
-		debug("[" + sm_name + "] ");
+		debug("[" + machine->name + "] ");
 		debug("Exception: engine not started!\n");
-		return ENGINE_TERMINATED_ERROR; //already terminated
+		return ERR_ENGINE_TERMINATED; //already terminated
 	}
 
-	return SME_SUCCESS;
+	return ERR_SUCCESS;
 }
 
-
-
-
-//##ModelId=45D2BE4D012E
-bool StateMachineEngine::validate(const StateMachine& machine)
-{
-	return true;
-}
-
-
-//##ModelId=45BC0B4E0229
 void StateMachineEngine::debug(const std::string& value)
 {
 #ifdef SME_DEBUG_TO_CONSOLE
@@ -489,7 +551,6 @@ void StateMachineEngine::debug(const std::string& value)
 #endif
 }
 
-//##ModelId=45BC0CAB0177
 void StateMachineEngine::debug(bool value)
 {
 	const char* str = (value ? "true":"false");
@@ -504,7 +565,6 @@ void StateMachineEngine::debug(bool value)
 #endif
 }
 
-//##ModelId=45BC0CC80395
 void StateMachineEngine::debug(int value)
 {
 #ifdef SME_DEBUG_TO_CONSOLE
@@ -518,8 +578,6 @@ void StateMachineEngine::debug(int value)
 #endif
 }
 
-
-//##ModelId=45BC1E56026B
 void StateMachineEngine::debug(const char *value)
 {
 #ifdef SME_DEBUG_TO_CONSOLE
@@ -533,6 +591,6 @@ void StateMachineEngine::debug(const char *value)
 #endif
 }
 
-
+}}}//end of namespace
 
 

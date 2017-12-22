@@ -47,7 +47,6 @@ public:
 	 */
 	typedef std::function<void (const StateMachineEngine* engine, const Transition* transition)> TransitionAction;
 
-
     StateMachineEngine(int id);
     virtual ~StateMachineEngine();
 
@@ -78,11 +77,7 @@ public:
     virtual error_code_t postEvent(int eventId);
 
   protected:
-    error_code_t processTransition(Transition& transition);
-    void debug(const std::string& value);
-    void debug(bool value);
-    void debug(int value);
-    void debug(const char *value);
+    virtual error_code_t processTransition(Transition& transition);
 
   private:
 	static const int SUB_ENGINE_ID;
@@ -107,8 +102,6 @@ public:
     StateMachineEngine* parent;
 //    int transitionStackDepth;
     bool transitionInProcess;
-    FILE* logFile;
-    std::string logFileName;
 //    std::queue<Transition*> transitionQueue;
 
 };

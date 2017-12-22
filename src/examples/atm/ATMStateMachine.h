@@ -3,6 +3,13 @@
  *
  *  Created on: Dec 10, 2017
  *      Author: bear
+ *
+ *  This example is taken from:
+ *  https://www.uml-diagrams.org/bank-atm-uml-state-machine-diagram-example.html
+ *
+ *  Note this example is purposed to demonstrated how the imachine framework works,
+ *  so the definition of the ATM state machine may not be 100% identical to the
+ *  example given above.
  */
 #ifndef EXAMPLES_ATM_ATMSTATEMACHINE_H_
 #define EXAMPLES_ATM_ATMSTATEMACHINE_H_

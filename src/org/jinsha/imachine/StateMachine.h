@@ -12,78 +12,185 @@ class Transition;
 class Trigger;
 class StateMachineEngine;
 
+/**
+ * Class definition of State Machine.
+ */
 class StateMachine {
 friend class StateMachineEngine;
 
 public:
+	/**
+	 * Check if a state machine is valid. (Not implemented yet)
+	 *
+	 * @return True if value, false otherwise.
+	 * (Currently always return true)
+	 */
 	static bool validate(const StateMachine& machine);
 
+	/**
+	 * Constructor
+	 *
+	 * @param id Id of the state machine
+	 * @param name Name of the state machine
+	 */
     StateMachine(int id, const std::string& name = "");
+
+    /**
+     * Destructor
+     */
     virtual ~StateMachine();
 
+    /**
+     * Get the id of this state machine.
+     *
+     * @return The id of this state machine.
+     */
     int getId() const {return id;};
+
+    /**
+     * Get the state instance by the given state id.
+     *
+     * @return The pointer to the state instance,
+     *         or nullptr if it does not exist.
+     */
     State* getState(int stateId) const ;
+
+    /**
+     * Create a state and add it into this state machine.
+     *
+	 * @param id Id of the state
+	 * @param name Name of the state
+	 * @return True if success, false otherwise.
+	 *
+	 * Notes:
+	 * If a state with the given id already exists, it will
+	 * return false.
+     */
     bool addState(int id, const std::string& name = "");
 
     /**
-     * Note:
-     * Automatic transition.
-     * addTransition() must be called after all addState().
+     * Create a transition and add it into this state machine.
+     *
+	 * @param id Id of the transition
+	 * @param fromStateId Id of the from-state of the transition
+	 * @param toStateId Id of the to-state of the transition
+	 * @param name Name of the transition
+	 * @return True if success, false otherwise.
+	 *
+	 * Notes:
+     * This method is for automatic transition (no event trigger needed);
+	 * If a transition with the given id already exists, it will
+	 * return false;
+     * This method must be called after all addState().
      */
     bool addTransition(int id, int fromStateId, int toStateId, const std::string& name = "");
 
     /**
-     * Note:
+     * Create a transition and add it into this state machine.
      *
-     * addTransition() must be called after the fromState and toState are added by calling addState().
+	 * @param id Id of the transition
+	 * @param fromStateId Id of the from-state of the transition
+	 * @param toStateId Id of the to-state of the transition
+	 * @param eventId Id of the event to trigger this transition
+	 * @param name Name of the transition
+	 * @return True if success, false otherwise.
+	 *
+	 * Notes:
+     * This method is for event-driven transition;
+	 * If a transition with the given id already exists, it will
+	 * return false;
+     * This method must be called after all addState().
      */
     bool addTransition(int id, int fromStateId, int toStateId, int eventId, const std::string& name = "");
 
     /**
-     * Note:
-     * setInitState() must be called after the state is added by calling addState().
+     * Set initial state of the state machine.
+     *
+	 * @param stateId Id of the initial state
+     *
+     * Notes:
+     * This method must be called after the state is added by calling addState().
      */
     bool setInitState(int stateId);
 
     /**
-     * Note:
+     * Set sub state machine of a state.
+     *
+     * @param stateId The id of the state to be set on
+     * @param machine The sub state machine to be set.
+     * @return False when the state with the given stateId
+     *         cannot be found or it is FINAL_STATE_ID, true
+     *         otherwise.
+     *
+     * Notes:
+     * This method is equivalent to setSubMachine(stateId, machine, true);
      * This method shall be used when the state machine
      * is not loaded into any state machine engine.
-     * Return false when this is the final state
      */
     bool setSubMachine(int stateId, StateMachine* machine);
 
     /**
-     * Note:
+     * Set sub state machine of a state.
+     *
+     * @param stateId The id of the state to be set on
+     * @param machine The sub state machine to be set.
+     * @param autoStart Whether automatically start the
+     *        sub-machine when this state is entered.
+     * @return False when the state with the given stateId
+     *         cannot be found or it is FINAL_STATE_ID, true
+     *         otherwise.
+     *
+     * Notes:
      * This method shall be used when the state machine
      * is not loaded into any state machine engine.
-     * Return false when this is the final state
-     * autoStart: Whether automatically start the sub-machine when this state is entered.
      */
     bool setSubMachine(int stateId, StateMachine* machine, bool autoStart);
 
     /**
-     * Note:
+     * Set sub state machine of a state.
+     *
+     * @param stateId The id of the state to be set on
+     * @param machine The sub state machine to be set.
+     * @param exitTransitionId The transition (in this state machine)
+     *        to go to when the sub-machine is shut down.
+     * @return False when the state with the given stateId
+     *         cannot be found or it is FINAL_STATE_ID, true
+     *         otherwise.
+     *
+     * Notes:
+     * This method is equivalent to setSubMachine(stateId, machine, true, exitTransitionId);
      * This method shall be used when the state machine
      * is not loaded into any state machine engine.
-     * Return false when this is the final state
-     * exitTransitionId: The transition (in this state machine) to go to
-     * when the sub-machine is shut down.
      */
     bool setSubMachine(int stateId, StateMachine* machine, int exitTransitionId);
 
     /**
-     * Note:
+     * Set sub state machine of a state.
+     *
+     * @param stateId The id of the state to be set on
+     * @param machine The sub state machine to be set.
+     * @param autoStart Whether automatically start the
+     *        sub-machine when this state is entered.
+     * @param exitTransitionId The transition (in this state machine)
+     *        to go to when the sub-machine is shut down.
+     * @return False when the state with the given stateId
+     *         cannot be found or it is FINAL_STATE_ID, true
+     *         otherwise.
+     *
+     * Notes:
      * This method shall be used when the state machine
      * is not loaded into any state machine engine.
-     * Return false when this is the final state
-     * autoStart: Whether automatically start the sub-machine when this state is entered.
-     * exitTransitionId: The transition (in this state machine) to go to
-     * when the sub-machine is shut down.
      */
     bool setSubMachine(int stateId, StateMachine* machine, bool autoStart, int exitTransitionId);
 
+    /**
+     * Remove all states from the state machine.
+     */
     void removeAllStates();
+
+    /**
+     * Remove all transitions from the state machine.
+     */
     void removeAllTransitions();
 
 private:

@@ -61,7 +61,7 @@ bool StateMachine::addTransition(int id, int fromStateId, int toStateId, const s
 
 bool StateMachine::doAddTransition(int id, int fromStateId, int toStateId, int* eventIdPtr, const std::string& name)
 {
-	if (id <= Transition::INVALID_ID) return false; //invalid id
+	if (id <= Transition::INVALID_TRANSITION_ID) return false; //invalid id
 	auto iter1 = transitions.find(id);
 	if (iter1 != transitions.end()) { //Do not add it if it already exists.
 		return false;

@@ -194,7 +194,7 @@ bool StateMachineEngine::doSetStateAction(int stateId, const StateAction* action
 
 bool StateMachineEngine::setTransitionAction(int transitionId, const TransitionAction* action)
 {
-	if (transitionId <= Transition::INVALID_ID) {
+	if (transitionId <= Transition::INVALID_TRANSITION_ID) {
 		log("[ENGINE:%d] Unable to set transition action for the transition (id=%d) is invalid.\n", id, transitionId);
 		return false; //invalid transition not allowed to have action
 	}

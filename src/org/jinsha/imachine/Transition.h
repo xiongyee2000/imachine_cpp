@@ -9,6 +9,13 @@ class State;
 class StateMachine;
 class StateMachineEngine;
 
+/**
+ * Class definition of Transition.
+ *
+ * Notes:
+ * The instance of Transition can only be created by
+ * StateMachine::addTransition().
+ */
 class Transition
 {
 	friend class State;
@@ -16,10 +23,46 @@ class Transition
     friend class StateMachineEngine;
 
 public:
-	static const int INVALID_ID;
 
+    /**
+     * The id of an invalid transition.
+     *
+     * Notes:
+     * The invalid transition is used internally.
+     * The value of INVALID_ID is -2.
+     */
+	static const int INVALID_TRANSITION_ID;
+
+
+    /**
+     * Get the state machine that this transition belongs to.
+     *
+     * @return The state machine that this transition belongs to.
+     *
+     * Notes:
+     * A transition must be created and managed by a state machine.
+     */
 	const StateMachine& getStateMachine() const {return machine;};
+
+    /**
+     * Get the id of this transition.
+     *
+     * @return The id of this transition.
+     *
+     * Notes:
+     * The id must be unique within its enclosing state machine.
+     */
     int getId() const {return id;};
+
+    /**
+     * Get the name of this transition.
+     *
+     * @return The name of this transition.
+     *
+     * Notes:
+     * The name is not required to be unique within its enclosing
+     * state machine, but is strongly recommended so.
+     */
     const std::string& getName() const {return name;};
 
 protected:

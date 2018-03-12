@@ -14,6 +14,12 @@ class StateMachineEngine;
 
 /**
  * Class definition of State Machine.
+ *
+ * Notes:
+ * A Naked State Machine contains only a set of states and
+ * a set of transitions but no more. This ensures it gives the
+ * most fundamental elments of a state machine so that the
+ * maximum independency and flexibility can be achieved.
  */
 class StateMachine {
 friend class StateMachineEngine;

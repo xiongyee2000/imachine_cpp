@@ -1,0 +1,213 @@
+\hypertarget{classcom_1_1ygomi_1_1roaddb_1_1util_1_1Message}{\section{com\-:\-:ygomi\-:\-:roaddb\-:\-:util\-:\-:Message Class Reference}
+\label{classcom_1_1ygomi_1_1roaddb_1_1util_1_1Message}\index{com\-::ygomi\-::roaddb\-::util\-::\-Message@{com\-::ygomi\-::roaddb\-::util\-::\-Message}}
+}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{classcom_1_1ygomi_1_1roaddb_1_1util_1_1Message_a7013741ef0d9d35dac1c4634272fe690}{Message} ()
+\item 
+\hyperlink{classcom_1_1ygomi_1_1roaddb_1_1util_1_1Message_aa3a005ef9465847783c122bd13cdb5d2}{Message} (int id, int type)
+\item 
+\hyperlink{classcom_1_1ygomi_1_1roaddb_1_1util_1_1Message_aa7b887436102ba55630ed94858b7ce5b}{Message} (int id, int type, const boost\-::any \&body)
+\item 
+virtual \hyperlink{classcom_1_1ygomi_1_1roaddb_1_1util_1_1Message_a348a100b81bd1dfe99669a3d390da0fc}{$\sim$\-Message} ()
+\item 
+int \hyperlink{classcom_1_1ygomi_1_1roaddb_1_1util_1_1Message_aee9d535ec201f6c3ef78cbdc819d1ba4}{get\-Id} () const 
+\item 
+int \hyperlink{classcom_1_1ygomi_1_1roaddb_1_1util_1_1Message_a3229c4264476f1268dc27aa8e917f8ca}{get\-Type} () const 
+\item 
+boost\-::any \hyperlink{classcom_1_1ygomi_1_1roaddb_1_1util_1_1Message_a88a5f49722b87b0b77455dfa22563ce4}{get\-Body} () const 
+\item 
+virtual boost\-::any \hyperlink{classcom_1_1ygomi_1_1roaddb_1_1util_1_1Message_ac17b01f461d7e5421dc8c95a49a5c154}{get\-Property} (const char $\ast$key) const 
+\item 
+virtual boost\-::any \hyperlink{classcom_1_1ygomi_1_1roaddb_1_1util_1_1Message_a70cf59ee0ea1d70d78fccc8a004dc1d7}{get\-Property} (const std\-::string \&key) const 
+\item 
+void \hyperlink{classcom_1_1ygomi_1_1roaddb_1_1util_1_1Message_a3874850fd7f16dea468611afff340906}{set\-Body} (std\-::shared\-\_\-ptr$<$ void $\ast$ $>$ body)
+\item 
+virtual void \hyperlink{classcom_1_1ygomi_1_1roaddb_1_1util_1_1Message_a881d0a7eb63d8a44c74d4d7779a882ba}{set\-Property} (const char $\ast$key, const boost\-::any \&value)
+\item 
+virtual void \hyperlink{classcom_1_1ygomi_1_1roaddb_1_1util_1_1Message_abe3c2677be0c311b934c9bcf15087381}{set\-Property} (const std\-::string \&key, const boost\-::any \&value)
+\end{DoxyCompactItemize}
+
+
+\subsection{Constructor \& Destructor Documentation}
+\hypertarget{classcom_1_1ygomi_1_1roaddb_1_1util_1_1Message_a7013741ef0d9d35dac1c4634272fe690}{\index{com\-::ygomi\-::roaddb\-::util\-::\-Message@{com\-::ygomi\-::roaddb\-::util\-::\-Message}!Message@{Message}}
+\index{Message@{Message}!com::ygomi::roaddb::util::Message@{com\-::ygomi\-::roaddb\-::util\-::\-Message}}
+\subsubsection[{Message}]{\setlength{\rightskip}{0pt plus 5cm}com\-::ygomi\-::roaddb\-::util\-::\-Message\-::\-Message (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}\label{classcom_1_1ygomi_1_1roaddb_1_1util_1_1Message_a7013741ef0d9d35dac1c4634272fe690}
+Default Constructor
+
+Notes\-: Id will be set to -\/1, and type will be set to -\/1. \hypertarget{classcom_1_1ygomi_1_1roaddb_1_1util_1_1Message_aa3a005ef9465847783c122bd13cdb5d2}{\index{com\-::ygomi\-::roaddb\-::util\-::\-Message@{com\-::ygomi\-::roaddb\-::util\-::\-Message}!Message@{Message}}
+\index{Message@{Message}!com::ygomi::roaddb::util::Message@{com\-::ygomi\-::roaddb\-::util\-::\-Message}}
+\subsubsection[{Message}]{\setlength{\rightskip}{0pt plus 5cm}com\-::ygomi\-::roaddb\-::util\-::\-Message\-::\-Message (
+\begin{DoxyParamCaption}
+\item[{int}]{id, }
+\item[{int}]{type}
+\end{DoxyParamCaption}
+)}}\label{classcom_1_1ygomi_1_1roaddb_1_1util_1_1Message_aa3a005ef9465847783c122bd13cdb5d2}
+Constructor
+
+
+\begin{DoxyParams}{Parameters}
+{\em id} & Id of the message, which is used to identify the message. \\
+\hline
+{\em type} & Type of the message, which is used to map the message to its corresponding message handler. \\
+\hline
+\end{DoxyParams}
+\hypertarget{classcom_1_1ygomi_1_1roaddb_1_1util_1_1Message_aa7b887436102ba55630ed94858b7ce5b}{\index{com\-::ygomi\-::roaddb\-::util\-::\-Message@{com\-::ygomi\-::roaddb\-::util\-::\-Message}!Message@{Message}}
+\index{Message@{Message}!com::ygomi::roaddb::util::Message@{com\-::ygomi\-::roaddb\-::util\-::\-Message}}
+\subsubsection[{Message}]{\setlength{\rightskip}{0pt plus 5cm}com\-::ygomi\-::roaddb\-::util\-::\-Message\-::\-Message (
+\begin{DoxyParamCaption}
+\item[{int}]{id, }
+\item[{int}]{type, }
+\item[{const boost\-::any \&}]{body}
+\end{DoxyParamCaption}
+)}}\label{classcom_1_1ygomi_1_1roaddb_1_1util_1_1Message_aa7b887436102ba55630ed94858b7ce5b}
+Constructor
+
+
+\begin{DoxyParams}{Parameters}
+{\em id} & Id of the message, which is used to identify the message. \\
+\hline
+{\em type} & Type of the message, which is used to map the message to its corresponding message handler. \\
+\hline
+{\em body} & Body of the message, which contains the data of the message. \\
+\hline
+\end{DoxyParams}
+\hypertarget{classcom_1_1ygomi_1_1roaddb_1_1util_1_1Message_a348a100b81bd1dfe99669a3d390da0fc}{\index{com\-::ygomi\-::roaddb\-::util\-::\-Message@{com\-::ygomi\-::roaddb\-::util\-::\-Message}!$\sim$\-Message@{$\sim$\-Message}}
+\index{$\sim$\-Message@{$\sim$\-Message}!com::ygomi::roaddb::util::Message@{com\-::ygomi\-::roaddb\-::util\-::\-Message}}
+\subsubsection[{$\sim$\-Message}]{\setlength{\rightskip}{0pt plus 5cm}com\-::ygomi\-::roaddb\-::util\-::\-Message\-::$\sim$\-Message (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [virtual]}}}\label{classcom_1_1ygomi_1_1roaddb_1_1util_1_1Message_a348a100b81bd1dfe99669a3d390da0fc}
+Destructor 
+
+\subsection{Member Function Documentation}
+\hypertarget{classcom_1_1ygomi_1_1roaddb_1_1util_1_1Message_a88a5f49722b87b0b77455dfa22563ce4}{\index{com\-::ygomi\-::roaddb\-::util\-::\-Message@{com\-::ygomi\-::roaddb\-::util\-::\-Message}!get\-Body@{get\-Body}}
+\index{get\-Body@{get\-Body}!com::ygomi::roaddb::util::Message@{com\-::ygomi\-::roaddb\-::util\-::\-Message}}
+\subsubsection[{get\-Body}]{\setlength{\rightskip}{0pt plus 5cm}boost\-::any com\-::ygomi\-::roaddb\-::util\-::\-Message\-::get\-Body (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+) const\hspace{0.3cm}{\ttfamily [inline]}}}\label{classcom_1_1ygomi_1_1roaddb_1_1util_1_1Message_a88a5f49722b87b0b77455dfa22563ce4}
+Get the message body.
+
+\begin{DoxyReturn}{Returns}
+The pointer holding the data of the message. 
+\end{DoxyReturn}
+\hypertarget{classcom_1_1ygomi_1_1roaddb_1_1util_1_1Message_aee9d535ec201f6c3ef78cbdc819d1ba4}{\index{com\-::ygomi\-::roaddb\-::util\-::\-Message@{com\-::ygomi\-::roaddb\-::util\-::\-Message}!get\-Id@{get\-Id}}
+\index{get\-Id@{get\-Id}!com::ygomi::roaddb::util::Message@{com\-::ygomi\-::roaddb\-::util\-::\-Message}}
+\subsubsection[{get\-Id}]{\setlength{\rightskip}{0pt plus 5cm}int com\-::ygomi\-::roaddb\-::util\-::\-Message\-::get\-Id (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+) const\hspace{0.3cm}{\ttfamily [inline]}}}\label{classcom_1_1ygomi_1_1roaddb_1_1util_1_1Message_aee9d535ec201f6c3ef78cbdc819d1ba4}
+Get the message id.
+
+\begin{DoxyReturn}{Returns}
+The id of the message. 
+\end{DoxyReturn}
+\hypertarget{classcom_1_1ygomi_1_1roaddb_1_1util_1_1Message_ac17b01f461d7e5421dc8c95a49a5c154}{\index{com\-::ygomi\-::roaddb\-::util\-::\-Message@{com\-::ygomi\-::roaddb\-::util\-::\-Message}!get\-Property@{get\-Property}}
+\index{get\-Property@{get\-Property}!com::ygomi::roaddb::util::Message@{com\-::ygomi\-::roaddb\-::util\-::\-Message}}
+\subsubsection[{get\-Property}]{\setlength{\rightskip}{0pt plus 5cm}boost\-::any com\-::ygomi\-::roaddb\-::util\-::\-Message\-::get\-Property (
+\begin{DoxyParamCaption}
+\item[{const char $\ast$}]{key}
+\end{DoxyParamCaption}
+) const\hspace{0.3cm}{\ttfamily [virtual]}}}\label{classcom_1_1ygomi_1_1roaddb_1_1util_1_1Message_ac17b01f461d7e5421dc8c95a49a5c154}
+Get the property value by key.
+
+
+\begin{DoxyParams}{Parameters}
+{\em key} & The key of the property. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+The value of the property given by key. 
+\end{DoxyReturn}
+\hypertarget{classcom_1_1ygomi_1_1roaddb_1_1util_1_1Message_a70cf59ee0ea1d70d78fccc8a004dc1d7}{\index{com\-::ygomi\-::roaddb\-::util\-::\-Message@{com\-::ygomi\-::roaddb\-::util\-::\-Message}!get\-Property@{get\-Property}}
+\index{get\-Property@{get\-Property}!com::ygomi::roaddb::util::Message@{com\-::ygomi\-::roaddb\-::util\-::\-Message}}
+\subsubsection[{get\-Property}]{\setlength{\rightskip}{0pt plus 5cm}boost\-::any com\-::ygomi\-::roaddb\-::util\-::\-Message\-::get\-Property (
+\begin{DoxyParamCaption}
+\item[{const std\-::string \&}]{key}
+\end{DoxyParamCaption}
+) const\hspace{0.3cm}{\ttfamily [virtual]}}}\label{classcom_1_1ygomi_1_1roaddb_1_1util_1_1Message_a70cf59ee0ea1d70d78fccc8a004dc1d7}
+Get the property value by key.
+
+
+\begin{DoxyParams}{Parameters}
+{\em key} & The key of the property. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+The pointer holding the value of the property given by key. 
+\end{DoxyReturn}
+\hypertarget{classcom_1_1ygomi_1_1roaddb_1_1util_1_1Message_a3229c4264476f1268dc27aa8e917f8ca}{\index{com\-::ygomi\-::roaddb\-::util\-::\-Message@{com\-::ygomi\-::roaddb\-::util\-::\-Message}!get\-Type@{get\-Type}}
+\index{get\-Type@{get\-Type}!com::ygomi::roaddb::util::Message@{com\-::ygomi\-::roaddb\-::util\-::\-Message}}
+\subsubsection[{get\-Type}]{\setlength{\rightskip}{0pt plus 5cm}int com\-::ygomi\-::roaddb\-::util\-::\-Message\-::get\-Type (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+) const\hspace{0.3cm}{\ttfamily [inline]}}}\label{classcom_1_1ygomi_1_1roaddb_1_1util_1_1Message_a3229c4264476f1268dc27aa8e917f8ca}
+Get the message id.
+
+\begin{DoxyReturn}{Returns}
+The type of the message. 
+\end{DoxyReturn}
+\hypertarget{classcom_1_1ygomi_1_1roaddb_1_1util_1_1Message_a3874850fd7f16dea468611afff340906}{\index{com\-::ygomi\-::roaddb\-::util\-::\-Message@{com\-::ygomi\-::roaddb\-::util\-::\-Message}!set\-Body@{set\-Body}}
+\index{set\-Body@{set\-Body}!com::ygomi::roaddb::util::Message@{com\-::ygomi\-::roaddb\-::util\-::\-Message}}
+\subsubsection[{set\-Body}]{\setlength{\rightskip}{0pt plus 5cm}void com\-::ygomi\-::roaddb\-::util\-::\-Message\-::set\-Body (
+\begin{DoxyParamCaption}
+\item[{std\-::shared\-\_\-ptr$<$ void $\ast$ $>$}]{body}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}}}\label{classcom_1_1ygomi_1_1roaddb_1_1util_1_1Message_a3874850fd7f16dea468611afff340906}
+Set message body.
+
+
+\begin{DoxyParams}{Parameters}
+{\em body} & The pointer pointing to the data that the message holds. Note the pointer won't be freed when this message is destroyed. \\
+\hline
+\end{DoxyParams}
+\hypertarget{classcom_1_1ygomi_1_1roaddb_1_1util_1_1Message_a881d0a7eb63d8a44c74d4d7779a882ba}{\index{com\-::ygomi\-::roaddb\-::util\-::\-Message@{com\-::ygomi\-::roaddb\-::util\-::\-Message}!set\-Property@{set\-Property}}
+\index{set\-Property@{set\-Property}!com::ygomi::roaddb::util::Message@{com\-::ygomi\-::roaddb\-::util\-::\-Message}}
+\subsubsection[{set\-Property}]{\setlength{\rightskip}{0pt plus 5cm}void com\-::ygomi\-::roaddb\-::util\-::\-Message\-::set\-Property (
+\begin{DoxyParamCaption}
+\item[{const char $\ast$}]{key, }
+\item[{const boost\-::any \&}]{value}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [virtual]}}}\label{classcom_1_1ygomi_1_1roaddb_1_1util_1_1Message_a881d0a7eb63d8a44c74d4d7779a882ba}
+Set message property.
+
+
+\begin{DoxyParams}{Parameters}
+{\em key} & The key of the property. \\
+\hline
+{\em value} & The value of the property. Note the value pointer won't be freed when this message is destroyed. \\
+\hline
+\end{DoxyParams}
+\hypertarget{classcom_1_1ygomi_1_1roaddb_1_1util_1_1Message_abe3c2677be0c311b934c9bcf15087381}{\index{com\-::ygomi\-::roaddb\-::util\-::\-Message@{com\-::ygomi\-::roaddb\-::util\-::\-Message}!set\-Property@{set\-Property}}
+\index{set\-Property@{set\-Property}!com::ygomi::roaddb::util::Message@{com\-::ygomi\-::roaddb\-::util\-::\-Message}}
+\subsubsection[{set\-Property}]{\setlength{\rightskip}{0pt plus 5cm}void com\-::ygomi\-::roaddb\-::util\-::\-Message\-::set\-Property (
+\begin{DoxyParamCaption}
+\item[{const std\-::string \&}]{key, }
+\item[{const boost\-::any \&}]{value}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [virtual]}}}\label{classcom_1_1ygomi_1_1roaddb_1_1util_1_1Message_abe3c2677be0c311b934c9bcf15087381}
+Set message property.
+
+
+\begin{DoxyParams}{Parameters}
+{\em key} & The key of the property. \\
+\hline
+{\em value} & The value of the property. Note the value pointer won't be freed when this message is destroyed. \\
+\hline
+\end{DoxyParams}
+
+
+The documentation for this class was generated from the following files\-:\begin{DoxyCompactItemize}
+\item 
+/opt/db-\/vehicle-\/agent/source/com/ygomi/roaddb/util/Message.\-h\item 
+/opt/db-\/vehicle-\/agent/source/com/ygomi/roaddb/util/Message.\-cpp\end{DoxyCompactItemize}

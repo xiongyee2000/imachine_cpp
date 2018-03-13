@@ -1,0 +1,94 @@
+\hypertarget{classcom_1_1ygomi_1_1roaddb_1_1util_1_1WorkThread}{\section{com\-:\-:ygomi\-:\-:roaddb\-:\-:util\-:\-:Work\-Thread Class Reference}
+\label{classcom_1_1ygomi_1_1roaddb_1_1util_1_1WorkThread}\index{com\-::ygomi\-::roaddb\-::util\-::\-Work\-Thread@{com\-::ygomi\-::roaddb\-::util\-::\-Work\-Thread}}
+}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+virtual \hyperlink{classcom_1_1ygomi_1_1roaddb_1_1util_1_1WorkThread_a0ec3db7dda670d07dd3ed080f2d7e40c}{$\sim$\-Work\-Thread} ()
+\item 
+virtual int \hyperlink{classcom_1_1ygomi_1_1roaddb_1_1util_1_1WorkThread_a4ecf08df35765b316742bf32f24b6cf0}{get\-Status} () const 
+\item 
+virtual void \hyperlink{classcom_1_1ygomi_1_1roaddb_1_1util_1_1WorkThread_afadf70a2f873ad2a5119c98467e8cc19}{do\-Work} (std\-::shared\-\_\-ptr$<$ \hyperlink{classcom_1_1ygomi_1_1roaddb_1_1util_1_1Work}{Work} $>$ work)
+\end{DoxyCompactItemize}
+\subsection*{Static Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+static const int \hyperlink{classcom_1_1ygomi_1_1roaddb_1_1util_1_1WorkThread_a327f2a2fcfd8a63f1684e6a7f4139558}{S\-T\-A\-T\-U\-S\-\_\-\-I\-N\-I\-T} = 1
+\item 
+static const int \hyperlink{classcom_1_1ygomi_1_1roaddb_1_1util_1_1WorkThread_ad6bc7481694d9df02ebcd1b827abb755}{S\-T\-A\-T\-U\-S\-\_\-\-I\-D\-L\-E} = 2
+\item 
+static const int \hyperlink{classcom_1_1ygomi_1_1roaddb_1_1util_1_1WorkThread_a7db27d123b3e2f4c5512bad8cbb67aee}{S\-T\-A\-T\-U\-S\-\_\-\-W\-O\-R\-K\-I\-N\-G} = 3
+\item 
+static const int \hyperlink{classcom_1_1ygomi_1_1roaddb_1_1util_1_1WorkThread_a936330c526d2a547c63831d9596acb53}{S\-T\-A\-T\-U\-S\-\_\-\-T\-E\-R\-M\-I\-N\-A\-T\-E\-D} = 4
+\end{DoxyCompactItemize}
+\subsection*{Friends}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classcom_1_1ygomi_1_1roaddb_1_1util_1_1WorkThread_a5d97748be7d69dcc44ef551ea35ef20f}{class {\bfseries Thread\-Pool}}\label{classcom_1_1ygomi_1_1roaddb_1_1util_1_1WorkThread_a5d97748be7d69dcc44ef551ea35ef20f}
+
+\end{DoxyCompactItemize}
+
+
+\subsection{Constructor \& Destructor Documentation}
+\hypertarget{classcom_1_1ygomi_1_1roaddb_1_1util_1_1WorkThread_a0ec3db7dda670d07dd3ed080f2d7e40c}{\index{com\-::ygomi\-::roaddb\-::util\-::\-Work\-Thread@{com\-::ygomi\-::roaddb\-::util\-::\-Work\-Thread}!$\sim$\-Work\-Thread@{$\sim$\-Work\-Thread}}
+\index{$\sim$\-Work\-Thread@{$\sim$\-Work\-Thread}!com::ygomi::roaddb::util::WorkThread@{com\-::ygomi\-::roaddb\-::util\-::\-Work\-Thread}}
+\subsubsection[{$\sim$\-Work\-Thread}]{\setlength{\rightskip}{0pt plus 5cm}com\-::ygomi\-::roaddb\-::util\-::\-Work\-Thread\-::$\sim$\-Work\-Thread (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [virtual]}}}\label{classcom_1_1ygomi_1_1roaddb_1_1util_1_1WorkThread_a0ec3db7dda670d07dd3ed080f2d7e40c}
+Destructor 
+
+\subsection{Member Function Documentation}
+\hypertarget{classcom_1_1ygomi_1_1roaddb_1_1util_1_1WorkThread_afadf70a2f873ad2a5119c98467e8cc19}{\index{com\-::ygomi\-::roaddb\-::util\-::\-Work\-Thread@{com\-::ygomi\-::roaddb\-::util\-::\-Work\-Thread}!do\-Work@{do\-Work}}
+\index{do\-Work@{do\-Work}!com::ygomi::roaddb::util::WorkThread@{com\-::ygomi\-::roaddb\-::util\-::\-Work\-Thread}}
+\subsubsection[{do\-Work}]{\setlength{\rightskip}{0pt plus 5cm}void com\-::ygomi\-::roaddb\-::util\-::\-Work\-Thread\-::do\-Work (
+\begin{DoxyParamCaption}
+\item[{std\-::shared\-\_\-ptr$<$ {\bf Work} $>$}]{work}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [virtual]}}}\label{classcom_1_1ygomi_1_1roaddb_1_1util_1_1WorkThread_afadf70a2f873ad2a5119c98467e8cc19}
+Start to do some work.
+
+
+\begin{DoxyParams}{Parameters}
+{\em I\-N\mbox{]}} & work The work to do.\\
+\hline
+\end{DoxyParams}
+Notes\-:
+\begin{DoxyEnumerate}
+\item This method will resume this work thread (while it is suspended) and let it do the given work.
+\item This method only takes effect when the status of this work thread is S\-T\-A\-T\-U\-S\-\_\-\-I\-D\-L\-E, or nothing will happen.
+\item After this work thread is resumed by this method, the status will become S\-T\-A\-T\-U\-S\-\_\-\-W\-O\-R\-K\-I\-N\-G; and once the work is done, the status will change back to S\-T\-A\-T\-U\-S\-\_\-\-I\-D\-L\-E and this work thread will be suspended again. 
+\end{DoxyEnumerate}\hypertarget{classcom_1_1ygomi_1_1roaddb_1_1util_1_1WorkThread_a4ecf08df35765b316742bf32f24b6cf0}{\index{com\-::ygomi\-::roaddb\-::util\-::\-Work\-Thread@{com\-::ygomi\-::roaddb\-::util\-::\-Work\-Thread}!get\-Status@{get\-Status}}
+\index{get\-Status@{get\-Status}!com::ygomi::roaddb::util::WorkThread@{com\-::ygomi\-::roaddb\-::util\-::\-Work\-Thread}}
+\subsubsection[{get\-Status}]{\setlength{\rightskip}{0pt plus 5cm}virtual int com\-::ygomi\-::roaddb\-::util\-::\-Work\-Thread\-::get\-Status (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+) const\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [virtual]}}}\label{classcom_1_1ygomi_1_1roaddb_1_1util_1_1WorkThread_a4ecf08df35765b316742bf32f24b6cf0}
+Get the status of the work thread.
+
+\begin{DoxyReturn}{Returns}
+The status of the work thread.
+\end{DoxyReturn}
+Refer to the statuses defined in this class. 
+
+\subsection{Member Data Documentation}
+\hypertarget{classcom_1_1ygomi_1_1roaddb_1_1util_1_1WorkThread_ad6bc7481694d9df02ebcd1b827abb755}{\index{com\-::ygomi\-::roaddb\-::util\-::\-Work\-Thread@{com\-::ygomi\-::roaddb\-::util\-::\-Work\-Thread}!S\-T\-A\-T\-U\-S\-\_\-\-I\-D\-L\-E@{S\-T\-A\-T\-U\-S\-\_\-\-I\-D\-L\-E}}
+\index{S\-T\-A\-T\-U\-S\-\_\-\-I\-D\-L\-E@{S\-T\-A\-T\-U\-S\-\_\-\-I\-D\-L\-E}!com::ygomi::roaddb::util::WorkThread@{com\-::ygomi\-::roaddb\-::util\-::\-Work\-Thread}}
+\subsubsection[{S\-T\-A\-T\-U\-S\-\_\-\-I\-D\-L\-E}]{\setlength{\rightskip}{0pt plus 5cm}const int com\-::ygomi\-::roaddb\-::util\-::\-Work\-Thread\-::\-S\-T\-A\-T\-U\-S\-\_\-\-I\-D\-L\-E = 2\hspace{0.3cm}{\ttfamily [static]}}}\label{classcom_1_1ygomi_1_1roaddb_1_1util_1_1WorkThread_ad6bc7481694d9df02ebcd1b827abb755}
+When this work thread is ready to do work (Value\-: 2). Note the work thread in this status is suspended. It can be resumed by \hyperlink{classcom_1_1ygomi_1_1roaddb_1_1util_1_1WorkThread_afadf70a2f873ad2a5119c98467e8cc19}{do\-Work()}. \hypertarget{classcom_1_1ygomi_1_1roaddb_1_1util_1_1WorkThread_a327f2a2fcfd8a63f1684e6a7f4139558}{\index{com\-::ygomi\-::roaddb\-::util\-::\-Work\-Thread@{com\-::ygomi\-::roaddb\-::util\-::\-Work\-Thread}!S\-T\-A\-T\-U\-S\-\_\-\-I\-N\-I\-T@{S\-T\-A\-T\-U\-S\-\_\-\-I\-N\-I\-T}}
+\index{S\-T\-A\-T\-U\-S\-\_\-\-I\-N\-I\-T@{S\-T\-A\-T\-U\-S\-\_\-\-I\-N\-I\-T}!com::ygomi::roaddb::util::WorkThread@{com\-::ygomi\-::roaddb\-::util\-::\-Work\-Thread}}
+\subsubsection[{S\-T\-A\-T\-U\-S\-\_\-\-I\-N\-I\-T}]{\setlength{\rightskip}{0pt plus 5cm}const int com\-::ygomi\-::roaddb\-::util\-::\-Work\-Thread\-::\-S\-T\-A\-T\-U\-S\-\_\-\-I\-N\-I\-T = 1\hspace{0.3cm}{\ttfamily [static]}}}\label{classcom_1_1ygomi_1_1roaddb_1_1util_1_1WorkThread_a327f2a2fcfd8a63f1684e6a7f4139558}
+When the thread is initially created (Value\-: 1). \hypertarget{classcom_1_1ygomi_1_1roaddb_1_1util_1_1WorkThread_a936330c526d2a547c63831d9596acb53}{\index{com\-::ygomi\-::roaddb\-::util\-::\-Work\-Thread@{com\-::ygomi\-::roaddb\-::util\-::\-Work\-Thread}!S\-T\-A\-T\-U\-S\-\_\-\-T\-E\-R\-M\-I\-N\-A\-T\-E\-D@{S\-T\-A\-T\-U\-S\-\_\-\-T\-E\-R\-M\-I\-N\-A\-T\-E\-D}}
+\index{S\-T\-A\-T\-U\-S\-\_\-\-T\-E\-R\-M\-I\-N\-A\-T\-E\-D@{S\-T\-A\-T\-U\-S\-\_\-\-T\-E\-R\-M\-I\-N\-A\-T\-E\-D}!com::ygomi::roaddb::util::WorkThread@{com\-::ygomi\-::roaddb\-::util\-::\-Work\-Thread}}
+\subsubsection[{S\-T\-A\-T\-U\-S\-\_\-\-T\-E\-R\-M\-I\-N\-A\-T\-E\-D}]{\setlength{\rightskip}{0pt plus 5cm}const int com\-::ygomi\-::roaddb\-::util\-::\-Work\-Thread\-::\-S\-T\-A\-T\-U\-S\-\_\-\-T\-E\-R\-M\-I\-N\-A\-T\-E\-D = 4\hspace{0.3cm}{\ttfamily [static]}}}\label{classcom_1_1ygomi_1_1roaddb_1_1util_1_1WorkThread_a936330c526d2a547c63831d9596acb53}
+When the thread terminates its working loop, i.\-e.\-: it will be terminated and won't do work no more. (Value\-: 4) \hypertarget{classcom_1_1ygomi_1_1roaddb_1_1util_1_1WorkThread_a7db27d123b3e2f4c5512bad8cbb67aee}{\index{com\-::ygomi\-::roaddb\-::util\-::\-Work\-Thread@{com\-::ygomi\-::roaddb\-::util\-::\-Work\-Thread}!S\-T\-A\-T\-U\-S\-\_\-\-W\-O\-R\-K\-I\-N\-G@{S\-T\-A\-T\-U\-S\-\_\-\-W\-O\-R\-K\-I\-N\-G}}
+\index{S\-T\-A\-T\-U\-S\-\_\-\-W\-O\-R\-K\-I\-N\-G@{S\-T\-A\-T\-U\-S\-\_\-\-W\-O\-R\-K\-I\-N\-G}!com::ygomi::roaddb::util::WorkThread@{com\-::ygomi\-::roaddb\-::util\-::\-Work\-Thread}}
+\subsubsection[{S\-T\-A\-T\-U\-S\-\_\-\-W\-O\-R\-K\-I\-N\-G}]{\setlength{\rightskip}{0pt plus 5cm}const int com\-::ygomi\-::roaddb\-::util\-::\-Work\-Thread\-::\-S\-T\-A\-T\-U\-S\-\_\-\-W\-O\-R\-K\-I\-N\-G = 3\hspace{0.3cm}{\ttfamily [static]}}}\label{classcom_1_1ygomi_1_1roaddb_1_1util_1_1WorkThread_a7db27d123b3e2f4c5512bad8cbb67aee}
+When this work thread is doing its work (Value\-: 3). Note after the work is done, this work thread will be suspended again, and its status will change back to S\-T\-A\-T\-U\-S\-\_\-\-I\-D\-L\-E again. 
+
+The documentation for this class was generated from the following files\-:\begin{DoxyCompactItemize}
+\item 
+/opt/db-\/vehicle-\/agent/source/com/ygomi/roaddb/util/Work\-Thread.\-h\item 
+/opt/db-\/vehicle-\/agent/source/com/ygomi/roaddb/util/Work\-Thread.\-cpp\end{DoxyCompactItemize}

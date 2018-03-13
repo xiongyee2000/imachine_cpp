@@ -112,9 +112,9 @@ public:
      * Get the sub engine of the state machine by the given state id.
      *
      * @return The sub engine of the state machine by the given state
-     * id, or nullptr if:
-     * The state machine with the id cannot be found;
-     * The state machine with the id holds no sub state machine.
+     *         id, or nullptr if:
+     *         The state machine with the id cannot be found;
+     *         The state machine with the id holds no sub state machine.
      */
     StateMachineEngine* getSubEngine(int stateId) const;
 
@@ -139,7 +139,6 @@ public:
     /**
      * Unload state machine into this engine.
      *
-     * @param stateMachine The state machine to be unloaded.
      * @return ERR_SUCCESS if successful, or the corresponding
      *         error code.
      */

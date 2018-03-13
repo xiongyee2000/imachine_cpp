@@ -3,7 +3,7 @@ A State Machine Framework
 
 # Overall
 
-I-Machine is aimed to provide a state machine framework that makes the state machine more independent and reusable, and makes the state machine based application more powerful and flexible.
+I-Machine is aimed to provide a state machine framework that enables machine self-learning and machine intellegence.
 
 # Introduction
 
@@ -25,6 +25,11 @@ In a certain state, a state machine accepts specific input events and triggers c
 
 Different from many other state machine frameworks, e.g. the one in RoseRT, the SME in this framework uses the NSM and the DAR to drive a state machine. NSM is the acronym for Naked State Machine, which is a state machine that has no action. DAR is the acronym for Dynamic Action Registration, which is a mechanism that allows a user hook desired actions to the NSM.
 
-# Value
+## State Machine Runtime Dynamic
 
-By using NSM and DAR the transition logic of a state machine is totally decoupled from user action logic of an application; and by decoupling the transition logic from the user action logic, the framework improves the flexibility and reusability of a state machine.
+Normally a state machine is predefined by users. But advanced machine intellegence requires a state machine be able to "evolve" itself when the environment changes. The I-Machine framework is aimed to provide the capability for state machine to change its states/transitions/event-handling etc. at runtime.
+
+# Values
+
+* By using NSM and DAR the transition logic of a state machine is totally decoupled from user action logic of an application; and by decoupling the transition logic from the user action logic, the framework improves the flexibility and reusability of a state machine.
+* With the State Machine Runtime Dynamic feature, the framework constructs a fundamental basis for the advanced machine learning and machine intellegence.

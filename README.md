@@ -34,7 +34,7 @@ Normally a state machine is predefined by users. But advanced machine intelligen
 * By using NSM and DAR the transition logic of a state machine is totally decoupled from user action logic of an application; and by decoupling the transition logic from the user action logic, the framework improves the flexibility and reusability of a state machine.
 * With the State Machine Runtime Dynamic feature, the framework constructs a fundamental basis for the advanced machine learning and machine intelligence.
 
-#Build
+# Build
 
 * Go to project root directory
 * Run ./build.sh
@@ -43,13 +43,13 @@ Normally a state machine is predefined by users. But advanced machine intelligen
   * the library will be generated at ./dist/lib/
   * the demo application will be generated at ./dist/bin/atm
 
-#Build Eclipse Project
+# Build Eclipse Project
 
   * Go to project root directory
   * Run ./build-eclipse.sh
   * After build is successfully done, the eclipse project will be generated at ./eclipse_project, and you can import it in your Eclipse.
 
-#Build UT (based on googletest)
+# Build UT (based on googletest)
 
 * Go to project root directory
 * Run ./build-ut.sh

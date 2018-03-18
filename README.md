@@ -3,7 +3,7 @@ A State Machine Framework
 
 # Overall
 
-I-Machine is aimed to provide a state machine framework that enables machine self-learning and machine intellegence.
+I-Machine is aimed to provide a state machine framework that enables machine self-learning and machine intelligence.
 
 # Introduction
 
@@ -27,9 +27,9 @@ Different from many other state machine frameworks, e.g. the one in RoseRT, the 
 
 ## State Machine Runtime Dynamic
 
-Normally a state machine is predefined by users. But advanced machine intellegence requires a state machine be able to "evolve" itself when the environment changes. The I-Machine framework is aimed to provide the capability for state machine to change its states/transitions/event-handling etc. at runtime.
+Normally a state machine is predefined by users. But advanced machine intelligence requires a state machine be able to "evolve" itself when the environment changes. The I-Machine framework is aimed to provide the capability for state machine to change its states/transitions/event-handling etc. at runtime.
 
 # Values
 
 * By using NSM and DAR the transition logic of a state machine is totally decoupled from user action logic of an application; and by decoupling the transition logic from the user action logic, the framework improves the flexibility and reusability of a state machine.
-* With the State Machine Runtime Dynamic feature, the framework constructs a fundamental basis for the advanced machine learning and machine intellegence.
+* With the State Machine Runtime Dynamic feature, the framework constructs a fundamental basis for the advanced machine learning and machine intelligence.

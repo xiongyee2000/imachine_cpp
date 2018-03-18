@@ -7,9 +7,8 @@ function init_env()
     #remove old directory
     rm -rf ${projectRootDir}/3rdParty/gtest-1.8.0/build
     mkdir -p ${projectRootDir}/3rdParty/gtest-1.8.0/build
-    rm -rf ${projectRootDir}/unit_test_build
-    mkdir -p ${projectRootDir}/unit_test_build
-    #mkdir ${projectRootDir}/unit_test_build/bin
+    rm -rf ${projectRootDir}/eclipse_ut_project
+    mkdir -p ${projectRootDir}/eclipse_ut_project
 }
 
 function process_build()
@@ -19,8 +18,8 @@ function process_build()
     cmake ..
     make
 
-    cd ${projectRootDir}/unit_test_build
-    cmake ${projectRootDir}/unit_test/src
+    cd ${projectRootDir}/eclipse_ut_project
+    cmake ${projectRootDir}/unit_test/src  -DCMAKE_BUILD_TYPE=Debug -G"Eclipse CDT4 - Unix Makefiles" -D_ECLIPSE_VERSION=4.6.3  
     make
     cd ${projectRootDir}
 }

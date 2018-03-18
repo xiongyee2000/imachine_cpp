@@ -35,6 +35,7 @@ Normally a state machine is predefined by users. But advanced machine intelligen
 * With the State Machine Runtime Dynamic feature, the framework constructs a fundamental basis for the advanced machine learning and machine intelligence.
 
 #Build
+
 * Go to project root directory
 * Run ./build.sh
 * After build is successfully done:
@@ -43,11 +44,13 @@ Normally a state machine is predefined by users. But advanced machine intelligen
   * the demo application will be generated at ./dist/bin/atm
 
 #Build Eclipse Project
+
   * Go to project root directory
   * Run ./build-eclipse.sh
   * After build is successfully done, the eclipse project will be generated at ./eclipse_project, and you can import it in your Eclipse.
 
 #Build UT (based on googletest)
+
 * Go to project root directory
 * Run ./build-ut.sh
 * After build is successfully done, the ut applicatioin will be generated at ./ut_build/bin/imachine_ut, and can run it to check the UT result.

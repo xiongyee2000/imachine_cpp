@@ -17,28 +17,34 @@ set(GTEST_LIB_PATH     ${CMAKE_CURRENT_SOURCE_DIR}/../../3rdParty/gtest-1.8.0/bu
 add_definitions(-std=c++11)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-arcs -ftest-coverage")
 
-set(src_dir )
-aux_source_directory(. src_dir)
+set(ut_src_files )
+aux_source_directory(. ut_src_files)
+
+set(imachine_root_dir ${CMAKE_CURRENT_SOURCE_DIR}/../..)
+aux_source_directory(${imachine_root_dir}/src/org/jinsha/imachine imachine_src_files)
 
 add_definitions(-DMOCK_UT)
 
-include_directories(${GTEST_INCLUDE_PATH})
+include_directories(${GTEST_INCLUDE_PATH} )
 include_directories(${GMOCK_INCLUDE_PATH})
+include_directories(${imachine_root_dir}/src)
 
 link_directories(
 	${GTEST_LIB_PATH}
 	${GMOCK_LIB_PATH}
 ) 
 
-add_executable(imachine_ut  ${src_dir} 
+add_executable(imachine_ut  
+    ${ut_src_files} 
+    ${imachine_src_files}
 )
 
 
 target_link_libraries(imachine_ut
-libgtest.a
-libgtest_main.a
-libgmock.a
-libgmock_main.a
-pthread
-gcov
+    libgtest.a
+    libgtest_main.a
+    libgmock.a
+    libgmock_main.a
+    pthread
+    gcov
 )

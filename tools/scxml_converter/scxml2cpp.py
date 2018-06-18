@@ -1,5 +1,5 @@
 #!/usr/bin/python
-# -*- coding: UTF-8 -*-
+#coding=utf-8
 
 import getopt
 import sys
@@ -24,7 +24,149 @@ def getTransitionElements(stateElement):
     return []
 pass
 
-header_file_begin = '''
+class State:
+    def __init__(self, id, name, isInit = False, subState = None):
+        self.id = id
+        self.name = name
+        self.isInit = isInit
+        self.subState = subState
+        
+        self.eventMapList = []
+pass
+
+class Transition:
+    def __init__(self, id, name, fromState, toState):
+        self.id = id
+        self.name = name
+        self.fromState = fromState
+        self.toState = toState
+pass
+
+class Event:
+    def __init__(self, id, name):
+        self.id = id
+        self.name = name
+pass
+
+class StateMachine:
+    def __init__(self):
+        self.stateList = []
+        self.transitionList = []
+        self.eventList = []
+        self.initState = None
+        
+    def getStateByName(self, name):
+        for item in self.stateList:
+            if item.name == name:
+                return item
+        return None
+        
+    def getEventByName(self, name):
+        for item in self.eventList:
+            if item.name == name:
+                return item
+        return None
+        
+    def build(self, element, isRoot = False):
+        self.stateList = []
+        self.transitionList = []
+        self.eventList = []
+        
+        stateElementList = None
+        firstElement = None
+        foundInitState = False
+        
+        initStateName = element.getAttribute('initial') #try to find initial as attribute
+        if initStateName == '': #try to find initial as child element
+            tmpList = getFirstLevelElementsByTagName(element, 'initial')
+            if len(tmpList) > 0:
+                initStateName = tmpList[0].firstChild.data
+                foundInitState = True
+            else: #Then the initial shall be the first one
+                tmpNode = element.firstChild
+                while tmpNode != None:
+                    if tmpNode.nodeType == tmpNode.ELEMENT_NODE and (tmpNode.tagName == 'state' or tmpNode.tagName == 'parallel'):
+                        initStateName = tmpNode.getAttribute('id')
+                        if initStateName == '': #id might not be present according the scxml specification
+                            initStateName = '_@_'
+                            tmpNode.setAttribute('id', '_@_')
+                        foundInitState = True
+                        break 
+                    tmpNode = tmpNode.nextSibling         
+        else:
+            foundInitState = True 
+
+        if not foundInitState:
+            print '[ERROR] No initial state is found.'
+            return 4
+        
+        stateElementList = getFirstLevelElementsByTagName(element, 'state')
+#         if isRoot:
+#             stateElementList = []
+#             stateElementList.append(element)
+#         else:
+#             stateElementList = getFirstLevelElementsByTagName(element, 'state')
+        
+        ################################################################
+        #Generate states
+        ################################################################               
+        stateCount = 0
+        for stateElement in stateElementList:
+            stateCount += 1
+            state = None
+            stateName = stateElement.getAttribute('id')
+            if stateName == '':
+                stateName = str(stateCount)
+            if isSubMachine(stateElement):
+                subMachine = StateMachine()
+                subMachine.build(stateElement)
+                state = State(stateCount, stateName, subMachine)
+            else:
+                state = State(stateCount, stateName)
+            self.stateList.append(state)
+            if initStateName == stateName:
+                self.initState = state
+    
+        ################################################################
+        #Generate transitions and event maps
+        ################################################################               
+        transitionCount = 0
+        eventCount = 0
+        stateIndex = -1
+        for stateElement in stateElementList:
+            stateIndex += 1
+            transitionElementList = getFirstLevelElementsByTagName(stateElement, 'transition')
+            for transitionElement in transitionElementList:
+                transitionCount += 1
+                targetStateName = transitionElement.getAttribute('target')
+                if targetStateName == '':
+                    print 'transition without a target not support.'
+                    exit -1
+                sourceState = self.getStateByName(self.stateList[stateIndex].name)
+                targetState = self.getStateByName(targetStateName)
+                transition = Transition(transitionCount, targetStateName, sourceState, targetState)
+                self.transitionList.append(transition)
+                eventName = transitionElement.getAttribute('event')
+                if eventName != '':
+                    event = self.getEventByName(eventName)
+                    if event == None:
+                        eventCount += 1
+                        event = Event(eventCount, eventName)
+                        self.eventList.append(event)
+                    sourceState.eventMapList.append({'event':event, 'transition': transition})
+                else: #eventless transition
+                    event = Event(-1, eventName)
+                    sourceState.eventMapList.append({'event':event, 'transition': transition})
+                                
+pass
+
+def buildSubState(stateElement, stateObject):
+    return
+pass
+
+def main(argv):    
+
+    header_file_begin = '''
 #ifndef $HEADER_MACRO
 #define $HEADER_MACRO
 
@@ -35,25 +177,45 @@ header_file_begin = '''
 using namespace org::jinsha::imachine;
 
 class $className : public StateMachine {
+
 public:
 '''
 
-header_file_end = '''
-    ATMStateMachine(int id);
-    virtual ~ATMStateMachine();
+    header_file_end = '''
+    $className(int id);
+    virtual ~$className();
 
 private:
-    ATMStateMachine();
-    ATMStateMachine(const ATMStateMachine& instance);
-    ATMStateMachine& operator = (const ATMStateMachine& instance);
+    $className() = delete;
+    $className(const ATMStateMachine& instance) = delete;
+    $className& operator = (const ATMStateMachine& instance) = delete;
 
     std::list<StateMachine*> subMachines;
 };
 
 #endif
+'''    
+
+    cpp_file_begin = '''
+#include "$className.h"
+
+$className::$className(int id) :
+    StateMachine(id, "$className")
+{
 '''
 
-def main(argv):    
+    cpp_file_end = '''
+};
+    
+$className::~$className()
+{
+    for (auto machine : subMachines) {
+        delete machine;
+    }
+};
+
+'''
+    
     scxmlFilePath = None
     outputDir = None
     namespace = None
@@ -71,7 +233,10 @@ options:
 -c,    --className: The state machine class name after conversion.
 -h,    --help: Usage
 '''    
-    
+
+    ################################################################
+    #Process command line arguments
+    ################################################################   
     if len(sys.argv) < 3:
         print usage
         return -1
@@ -100,13 +265,28 @@ options:
         print "scxmlFile does not exist." 
         return 1
 
+    ################################################################
+    #Parse input scxml file
+    ################################################################   
     domTree = xml.dom.minidom.parse(scxmlFilePath)
     rootElement = domTree.documentElement
-    initStateId = None
+    initStateName = None
     
-    if rootElement.nodeType == rootElement.ELEMENT_NODE and rootElement.tagName == 'scxml':
-        initStateId = rootElement.getAttribute('initial')
-    else:
+    #if rootElement.nodeType == rootElement.ELEMENT_NODE and rootElement.tagName == 'scxml':
+    if rootElement.tagName != 'scxml':
+#         initStateName = rootElement.getAttribute('initial')
+#         if initStateName == '':
+#             tmpNode = rootElement.firstChild
+#             while tmpNode != None:
+#                 if tmpNode.nodeType == tmpNode.ELEMENT_NODE and (tmpNode.tagName == 'state' or tmpNode.tagName == 'parallel'):
+#                     initStateName = tmpNode.getAttribute('id')
+#                     break
+#                 else:
+#                    tmpNode = tmpNode.nextSibling 
+#             if initStateName == '':
+#                 print '[ERROR] No initial state is found.'
+#                 return 4
+#    else:
         print 'This is not a scxml file.'
         return 2
     
@@ -116,31 +296,65 @@ options:
             print "Failed to create outputDir: " + outputDir
             return 3
     
+    rootStateMachine = StateMachine()
+    rootStateMachine.build(rootElement, True)
+            
     outputHeaderFileName = outputDir + '/' + className + '.h';
     outputCppFileName = outputDir + '/' + className + '.cpp';
     outputHeaderFile = open(outputHeaderFileName, 'w')
     outputCppFile = open(outputCppFileName, 'w')
     headerMacro = className.upper() + '_H_'
-    global header_file_begin
     header_file_begin = header_file_begin.replace('$HEADER_MACRO', headerMacro)
     header_file_begin = header_file_begin.replace('$className', className)
-    
     outputHeaderFile.write(header_file_begin)
     
-    stateElementList = getFirstLevelElementsByTagName(rootElement, 'state')
-    index = 0
-    for stateElement in stateElementList:
-        index += 1
-        id = stateElement.getAttribute('id')
-        if id == None:
-            id = str(index)
-        #transitionElementList = getTransitionElements(stateElement)
-        if isSubMachine(stateElement):
-            a = 1
-            #createSubMachine(stateElement);
-        outputHeaderFile.write('    static const int STATE_%s = %d;\n' % (id, index))
-            
+    for state in rootStateMachine.stateList:
+        tmpStr  = '    /**\n'
+        tmpStr += '     * state %s\n' % (state.name)
+        tmpStr += '     */\n'
+        tmpStr += '    static const int STATE_%d = %d;\n\n' % (state.id, state.id)
+        outputHeaderFile.write(tmpStr)
+    outputHeaderFile.write('\n')
+    for transition in rootStateMachine.transitionList:
+        tmpStr  = '    /**\n'
+        tmpStr += '     * transition %s\n' % (transition.name)
+        tmpStr += '     */\n'
+        tmpStr += '    static const int TRAN_%d = %d;\n\n' % (transition.id, transition.id)
+        outputHeaderFile.write(tmpStr)
+    outputHeaderFile.write('\n')
+    for event in rootStateMachine.eventList:
+        tmpStr  = '    /**\n'
+        tmpStr += '     * event %s\n' % (event.name)
+        tmpStr += '     */\n'
+        tmpStr += '    static const int EVENT_%d = %d;\n\n' % (event.id, event.id)
+        outputHeaderFile.write(tmpStr)
+    outputHeaderFile.write('\n')                 
+    
+    header_file_end = header_file_end.replace('$className', className)
     outputHeaderFile.write(header_file_end)
+    
+    cpp_file_begin = cpp_file_begin.replace('$className', className)
+    outputCppFile.write(cpp_file_begin)
+    
+    for state in rootStateMachine.stateList:
+        tmpStr = '    addState(STATE_%d, "%s"); \n' % (state.id, state.name)
+        outputCppFile.write(tmpStr)
+    outputCppFile.write('\n')
+    
+    tmpStr = '    setInitState(STATE_%d); \n' % (rootStateMachine.initState.id)
+    outputCppFile.write(tmpStr)
+    outputCppFile.write('\n')
+    
+    for state in rootStateMachine.stateList:
+        for eventMap in state.eventMapList:
+            event = eventMap['event']
+            transition = eventMap['transition']
+        tmpStr = '    addTransition(TRAN_%d, STATE_%d, EVENT_%d, STATE_%d, "%s"); \n' % (transition.id, transition.fromState.id, transition.toState.id, event.id, state.name)
+        outputCppFile.write(tmpStr)
+    outputCppFile.write('\n')           
+    
+    cpp_file_end = cpp_file_end.replace('$className', className)
+    outputCppFile.write(cpp_file_end)
 
 pass
 

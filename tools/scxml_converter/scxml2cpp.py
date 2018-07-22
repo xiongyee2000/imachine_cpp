@@ -149,6 +149,7 @@ class State:
         self.name = name
         self.parent = parent
         self.isInit = False
+        self.isFinal = False
         self.subMachine = subMachine
         if subMachine != None:
             subMachine.parent = self
@@ -157,15 +158,15 @@ class State:
 pass
 
 class Transition:
-    def __init__(self, id, name, fromState, toState):
+    def __init__(self, id, fromState, toState):
         self.id = id
-        self.name = name
+        self.name = fromState.name + '->' + toState.name
         self.fromState = fromState
         self.toState = toState
 pass
 
 class Event:
-    def __init__(self, id, name):
+    def __init__(self, id, name = ''):
         self.id = id
         self.name = name
 pass
@@ -206,16 +207,10 @@ class StateMachine:
             print '[ERROR] No initial state is found.'
             return 4
         
-        stateElementList = getFirstLevelElementsByTagName(element, 'state')
-#         if isRoot:
-#             stateElementList = []
-#             stateElementList.append(element)
-#         else:
-#             stateElementList = getFirstLevelElementsByTagName(element, 'state')
-        
         ################################################################
         #Generate states
         ################################################################               
+        stateElementList = getFirstLevelElementsByTagName(element, 'state')        
         stateCount = 0
         for stateElement in stateElementList:
             stateCount += 1
@@ -235,6 +230,19 @@ class StateMachine:
                 self.initState = state
                 state.isInit = True
     
+        finalStateElementList = getFirstLevelElementsByTagName(element, 'final')        
+        if len(finalStateElementList) > 1:
+            print '[ERROR] Multiple <final> elements are current not supported. (Is multiple final really necessary?)'
+            exit(4)
+        for stateElement in finalStateElementList:
+            stateCount += 1
+            stateName = stateElement.getAttribute('id')
+            if stateName == '':
+                stateName = str(stateCount)
+            state = State(-1, stateName, self)
+            state.isFinal = True
+            self.stateList.append(state)
+
         ################################################################
         #Generate transitions and event maps
         ################################################################               
@@ -246,13 +254,14 @@ class StateMachine:
             transitionElementList = getFirstLevelElementsByTagName(stateElement, 'transition')
             for transitionElement in transitionElementList:
                 transitionCount += 1
+                #Note only one target is allowed here
                 targetStateName = transitionElement.getAttribute('target')
                 if targetStateName == '':
-                    print 'transition without a target not support.'
-                    exit -1
+                    print '[ERROR] transition without a target not support.'
+                    exit(5)
                 sourceState = self.getStateByName(self.stateList[stateIndex].name)
                 targetState = self.getStateByName(targetStateName)
-                transition = Transition(transitionCount, targetStateName, sourceState, targetState)
+                transition = Transition(transitionCount, sourceState, targetState)
                 self.transitionList.append(transition)
                 eventName = transitionElement.getAttribute('event')
                 if eventName != '':
@@ -263,20 +272,25 @@ class StateMachine:
                         self.eventList.append(event)
                     sourceState.eventMapList.append({'event':event, 'transition': transition})
                 else: #eventless transition
-                    event = Event(-1, eventName)
+                    event = Event(-1)
                     sourceState.eventMapList.append({'event':event, 'transition': transition})
                     
     def outputClassDef(self, outputHeaderFile):
         global classDefBegin
         myClassDefBegin = classDefBegin.replace('$className', self.className)
         outputHeaderFile.write(myClassDefBegin)
+        
         for state in self.stateList:
             tmpStr  = '    /**\n'
             tmpStr += '     * state %s\n' % (state.name)
             tmpStr += '     */\n'
-            tmpStr += '    static const int STATE_%d = %d;\n\n' % (state.id, state.id)
+            if state.isFinal:
+                tmpStr += '    static const int STATE_FINAL = State::FINAL_STATE_ID;\n'
+            else:
+                tmpStr += '    static const int STATE_%d = %d;\n\n' % (state.id, state.id)
             outputHeaderFile.write(tmpStr)
         outputHeaderFile.write('\n')
+        
         for transition in self.transitionList:
             tmpStr  = '    /**\n'
             tmpStr += '     * transition %s\n' % (transition.name)
@@ -284,6 +298,7 @@ class StateMachine:
             tmpStr += '    static const int TRAN_%d = %d;\n\n' % (transition.id, transition.id)
             outputHeaderFile.write(tmpStr)
         outputHeaderFile.write('\n')
+        
         for event in self.eventList:
             tmpStr  = '    /**\n'
             tmpStr += '     * event %s\n' % (event.name)
@@ -309,7 +324,12 @@ class StateMachine:
         outputCppFile.write(myClassImplBegin)
         
         for state in self.stateList:
-            tmpStr = '    addState(STATE_%d, "%s"); \n' % (state.id, state.name)
+            toStateIdStr = None
+            if state.isFinal:
+                stateIdStr = 'STATE_FINAL'
+            else:
+                stateIdStr = str(state.id)
+            tmpStr = '    addState(%s, "%s"); \n' % (stateIdStr, state.name)
             outputCppFile.write(tmpStr)
         outputCppFile.write('\n')
         
@@ -321,13 +341,21 @@ class StateMachine:
             for eventMap in state.eventMapList:
                 event = eventMap['event']
                 transition = eventMap['transition']
-                tmpStr = '    addTransition(TRAN_%d, STATE_%d, STATE_%d, EVENT_%d, "%s"); \n' % (transition.id, transition.fromState.id, transition.toState.id, event.id, transition.fromState.name + "->" + transition.toState.name)
+                toStateIdStr = None
+                if transition.toState.isFinal:
+                    toStateIdStr = 'STATE_FINAL'
+                else:
+                    toStateIdStr = 'STATE_' + str(transition.toState.id)
+                if event.name == '': #event less transition
+                    tmpStr = '    addTransition(TRAN_%d, STATE_%d, %s, "%s"); \n' % (transition.id, transition.fromState.id, toStateIdStr, transition.name)
+                else:
+                    tmpStr = '    addTransition(TRAN_%d, STATE_%d, %s, EVENT_%d, "%s"); \n' % (transition.id, transition.fromState.id, toStateIdStr, event.id, transition.name)                    
                 outputCppFile.write(tmpStr)
         outputCppFile.write('\n')           
         
         for subMachine in self.subMachineList:
             tmpStr = '    {\n'
-            tmpStr += '        StateMachine* subMachine = new %s(0, %s);\n' % (subMachine.className, subMachine.className)
+            tmpStr += '        StateMachine* subMachine = new %s(0);\n' % (subMachine.className)
             tmpStr += '        setSubMachine(STATE_%d, subMachine, true); \n' % (subMachine.parent.id)
             tmpStr += '        subMachines.push_back(subMachine); \n'
             tmpStr += '    };\n'

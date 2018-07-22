@@ -9,7 +9,11 @@
         </state>
         <state id="highSpeed">
             <transition event="speedLow" target="lowSpeed"/>
+            <transition event="error" target="final_2"/>
         </state>
         <transition event="stop" target="stopped"/>
+        <transition event="error" target="final_1"/>
+        <final id="final_2"></final>
     </state>
+    <final id="final_1"></final>
 </scxml>

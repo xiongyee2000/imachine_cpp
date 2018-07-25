@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scxml xmlns="http://www.w3.org/2005/07/scxml" version="1.0">
+    <state id="stopped">
+        <transition event="start" target="running"/>
+    </state>
+    <state id="running">
+        <state id="lowSpeed">
+            <transition event="speedUp" target="highSpeed"/>
+        </state>
+        <state id="highSpeed">
+            <transition event="speedLow" target="lowSpeed"/>
+            <transition event="error" target="final_2"/>
+        </state>
+        <transition event="stop" target="stopped"/>
+        <transition event="error" target="final_1"/>
+        <final id="final_2"></final>
+    </state>
+    <final id="final_1"></final>
+</scxml>
